@@ -1,0 +1,4 @@
+map/my-app/node_modules
+map/my-app/dist
+static/node_modules
+static/ol

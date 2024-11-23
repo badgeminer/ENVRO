@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eel example</title>
+
+    <link rel="stylesheet" href="static/css/main.css">
+</head>
+<body>
+    
+      {% block data %}{% endblock %}
+      <div class="topnav {% if abs %}absPos{% endif %}">
+        <span id="topWarn" class="warnPane twoLineData" >
+            <p id="warn" class="no_margin" style="font-size: 20px;"></p>
+            <p id="warnType" class="no_margin" style="font-size: 10px;">TSTORM</p>
+        </span>
+        <span class="twoLineData">
+            <p id="time" class="no_margin"></p>
+            <p id="date" class="no_margin" style="font-size: 10px;"></p>
+        </span>
+        
+        <!--<button {% if alrt %}class="active"{% endif %} id="button-key" onclick="update('/static/info/alerts.html')">Alerts</button>
+        !-->
+        <a {% if alrt %}class="active"{% endif %} id="button-key" href="/" >Alerts</a>
+        <a {% if data %}class="active"{% endif %} id="button-number" href="/data">Data</a>
+        <a {% if forc %}class="active"{% endif %} id="button-date" href="/forcast">Forcast</a>
+        <a {% if map  %}class="active"{% endif %} id="button-map" href="/map">Map</a>
+      </div>
+      {% block body %}{% endblock %}
+</body>
+{% block scripts %}{% endblock %}
+<script src="static/js/main.js"></script>
+<script src="static/js/stormWarn.js"></script>
+</html>

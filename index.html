@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eel example</title>
+
+    <link rel="stylesheet" href="css/main.css">
+    <script type="text/javascript" src="/eel.js"></script> 
+    {% block header %}{% endblock %}
+    <script type="text/javascript">
+            
+        $(function(){
+
+                    eel.expose(say_hello_js);               // Expose this function to Python
+                    function say_hello_js(x) {
+                    console.log("Hello from " + x);
+                    }
+                    say_hello_js("Javascript World!");
+                    eel.handleinput("connected!");  // Call a Python function
+                    
+                    $("#btn").click(function(){
+                        eel.handleinput($("#inp").val());
+                        $('#inp').val('');
+                    });
+        }); 
+        </script>
+</head>
+<body>
+    <div class="topnav">
+        <a class="active" id="button-key">Alerts</a>
+        <a id="button-number">NIL</a>
+        <a id="button-date">NIL</a>
+        <a id="button-ip">NIL</a>
+      </div> 
+      {% block data %}{% endblock %}
+</body>
+<script src="js/main.js"></script>
+</html>
