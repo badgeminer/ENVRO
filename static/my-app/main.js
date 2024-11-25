@@ -1,0 +1,489 @@
+import './style.css';
+import Feature from 'ol/Feature.js';
+import {Map, View} from 'ol';
+import {Vector,TileWMS} from 'ol/source.js';
+import {Icon,Style,Stroke} from 'ol/style.js';
+import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
+import OSM from 'ol/source/OSM';
+import {Point,LineString} from 'ol/geom';
+import {fromLonLat,useGeographic} from 'ol/proj.js';
+import VectorImageLayer from 'ol/layer/VectorImage.js';
+//import VectorLayer from 'ol/layer/Vector.js';
+import VectorSource from 'ol/source/Vector.js';
+import GeoJSON from 'ol/format/GeoJSON.js';
+import Fill from 'ol/style/Fill.js';
+
+//region main
+let warnsls = document.getElementById("warns");
+//eel.expose(prompt_alerts);
+function prompt_alerts(description) {
+  alert(description);
+}
+
+
+
+//eel.expose(alerts_warn);
+/*function alerts_warn(type,id,title) {
+  let a = document.createElement("div")
+  a.classList.add(type)
+  a.id = id
+  a.innerHTML = `<h3>${title}</h3>`
+  document.getElementById(`${type}`).appendChild(a)
+}*/
+
+//eel.expose(temps);
+function temps(stat,wind) {
+  sc.innerText = `${stat}°C`;
+  wc.innerText = `${wind}°C`;
+}
+//eel.expose(winds);
+function winds(speed,hddn) {
+  wnd.innerText = `${speed} km/h @ ${hddn}°`;
+}
+//eel.expose(refr);
+function refr(description) {
+  document.getElementById("cntr").innerHTML = "<img "
+}
+var timeDisplay = document.getElementById("time");
+var dateDisplay = document.getElementById("date");
+var timeDisplayL = document.getElementById("timeLocal");
+var dateDisplayL = document.getElementById("dateLocal");
+
+function refreshTime() {
+  var d= new Date();
+  var dateString = new Date().toLocaleString("en-US",);
+  var formattedString = dateString.replace(", ", " - ");
+  formattedString = `${d.toLocaleTimeString("en-CA",{hour12: false,second: '2-digit',hour: '2-digit', minute:'2-digit',timeZone: 'UTC'})}Z`
+  timeDisplay.innerHTML = formattedString;
+  dateDisplay.innerHTML = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+  dateDisplayL.innerHTML = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  timeDisplayL.innerHTML = `${d.toLocaleTimeString("en-CA",{hour12: false,hour: '2-digit', minute:'2-digit',second: '2-digit'})}`
+}
+
+setInterval(refreshTime, 1000);
+
+function httpGet(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+var cntr = document.getElementById("cntr");
+function update(url) {
+  cntr.innerHTML = httpGet(url)
+}
+//endregion
+
+//region alerts
+
+let sc = document.getElementById("temps");
+let wc = document.getElementById("temps_wind");
+let wnd = document.getElementById("wind");
+var warns = {
+    "TSTORM":" ",
+    "TORNADO":" 󰼸",
+    "HEAT":" ",
+    "SNOW":"󰼩"
+}
+var watch = {
+    "TSTORM":"󰼯 ",
+    "TORNADO":"󰼯 󰼸",
+}
+var prioritys = [
+    "warns.TORNADO",
+    "watch.TORNADO",
+    "warns.SNOW",
+    "warns.TSTORM",
+    "watch.TSTORM",
+    "warns.HEAT",
+    "test"
+]
+var alerts= {
+    "NONE": {
+        "bg":"#333",
+    },
+    "test":{
+        "bg":"#119911",
+        "symbols": ' ',
+        "text":"TEST",
+        "class":"test",
+    }
+}
+for (const key in warns) {
+    const element = warns[key];
+    
+    alerts[`warns.${key}`]={
+        "class":"warnings",
+        "bg":"red",
+        "symbols": element,
+        "text":key
+    }
+}
+for (const key in watch) {
+    const element = watch[key];
+    
+    alerts[`watch.${key}`]={
+        "class":"watches",
+        "bg":"yellow",
+        "symbols": element,
+        "text":key
+    }
+}
+
+var top_alert = document.getElementById("topWarn");
+var alertIcon = document.getElementById("warn");
+var alertType = document.getElementById("warnType");
+var curAlert = "NONE"
+var prev = alerts[curAlert]
+var alertData = alerts[curAlert]
+function setAlertLayout() {
+    var intr = 0;
+    intr = setInterval(() => {
+        top_alert.style.setProperty("--prev",alertData.bg)
+        top_alert.style.setProperty("--side","left")
+        clearInterval(intr)
+    },501)
+}
+
+function setAlert(alert) {
+    prev = alerts[curAlert]
+    alertData = alerts[alert]
+    top_alert.style.setProperty("--side","right")
+    if (alert == "NONE") {
+        
+        top_alert.setAttribute("type","NONE")
+        top_alert.style.setProperty("--prev",prev.bg)
+        top_alert.style.setProperty("--cur",alertData.bg)
+        alertIcon.innerText = ""
+        alertType.innerText = ""
+    } else {
+        
+        //top_alert.style.background = "linear-gradient(to left, yellow 50%, red 50%) right"
+        
+        
+        top_alert.setAttribute("type",alertData.class)
+        top_alert.style.setProperty("--prev",prev.bg)
+        top_alert.style.setProperty("--cur",alertData.bg)
+
+        //top_alert.class = `${alertData.class} twoLineData`
+        //top_alert.classList[0] = alertData.class
+        alertIcon.innerText = alertData.symbols
+        alertType.innerText = alertData.text
+        
+    }
+    setAlertLayout();
+
+    curAlert = alert
+}
+
+
+var active = new Set();
+var types = [
+    "warnings",
+    "watches",
+    "advisories",
+    "statements",
+    "endings"
+]
+function alerts_warn(type,id,title) {
+    let a = document.createElement("div")
+    a.classList.add(type)
+    a.id = id
+    a.innerHTML = `<h3>${alerts[id]["symbols"]} ${title}</h3>`
+    document.getElementById(`${type}`).appendChild(a)
+  }
+
+
+
+
+//endregion
+
+//region datapane
+
+var checks = document.getElementById('checks')
+function makeBind(name) {
+    var elem = document.getElementById(name)
+    var data = document.createElement("p");
+    var check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = !elem.hidden;
+    data.innerText = name;
+    //data.appendChild(check);
+    data.insertAdjacentElement("afterbegin",check)
+    checks.appendChild(data)
+    
+
+    check.addEventListener('change', (event) => {
+        elem.hidden = !event.currentTarget.checked
+      })
+}
+makeBind("shear")
+makeBind("MUCAPE")
+makeBind("VORT")
+makeBind("DEW")
+makeBind("MOIST")
+makeBind("DIVERG")
+//endregion
+
+
+
+async function getRadarStartEndTime() {
+  let response = await fetch('https://geo.weather.gc.ca/geomet/?lang=en&service=WMS&request=GetCapabilities&version=1.3.0&LAYERS=RADAR_1KM_RRAI&t=' + new Date().getTime())
+  let data = await response.text().then(
+    data => {
+      let xml = parser.parseFromString(data, 'text/xml');
+      let [start, end] = xml.getElementsByTagName('Dimension')[0].innerHTML.split('/');
+      let default_ = xml.getElementsByTagName('Dimension')[0].getAttribute('default');
+      return [start, end, default_];
+    }
+  )
+  return [new Date(data[0]), new Date(data[1]), new Date(data[2])];
+}
+
+const vectorLayer = new VectorImageLayer({
+  background: '#00000000',
+  imageRatio: 2,
+  source: new VectorSource({
+    url: 'https://api.weather.gc.ca/collections/public-standard-forecast-zones/items?f=json',
+    format: new GeoJSON(),
+  }),
+  style: {
+    'stroke-color': "#000000",
+    'stroke-width': 0.5,
+  }
+});
+
+const alerts_layer = new VectorImageLayer({
+  background: '#00000000',
+  imageRatio: 2,
+  source: new VectorSource({
+    url: '/api/geojson/merged',
+    format: new GeoJSON(),
+  }),
+  style: [
+    {
+      filter: ['==', ['get', 'warn'],"snowfall"],
+      style: {
+        "fill-color":"#03c2fc55",
+        'stroke-color': "#000000",
+        'stroke-width': 0.1,
+      }
+    },
+    {
+      filter: ['==', ['get', 'warn'],"blizzard"],
+      style: {
+        "fill-color":"#00007755",
+        'stroke-color': "#000000",
+        'stroke-width': 0.1,
+      }
+    },
+    {
+      else:true,
+      style: {
+        "fill-color":"#11111155",
+        'stroke-color': "#00000077",
+        'stroke-width': 1,
+      }
+    }
+  ],
+});
+
+const alertsO_layer = new TileLayer({
+  opacity: 0.4,
+  source: new TileWMS({
+    url: 'https://geo.weather.gc.ca/geomet/',
+    params: {'LAYERS': 'ALERTS', 'TILED': true},
+    transition: 0
+  })
+})
+const radar_layer = new TileLayer({
+  opacity: 0.4,
+  source: new TileWMS({
+    url: 'https://geo.weather.gc.ca/geomet/',
+    params: {'LAYERS': 'RADAR_1KM_RRAI', 'TILED': true},
+    transition: 0
+  })
+})
+
+radar_layer.getSource().on("imageloaderror", () => {
+  getRadarStartEndTime().then(data => {
+    currentTime = startTime = data[0];
+    endTime = data[1];
+    defaultTime = data[2];
+    updateLayers();
+    updateInfo();
+    updateButtons();
+  })
+});
+
+
+
+
+function updateLayers() {
+  radar_layer.getSource().updateParams({'TIME': currentTime.toISOString().split('.')[0]+"Z"});
+  //radar_layer.getSource().updateParams({'TIME': currentTime.toISOString().split('.')[0]+"Z"});
+}
+
+
+var lpings = document.getElementById("locPing");
+//useGeographic()
+const map = new Map({
+  target: 'map',
+  layers: [
+    new TileLayer({
+      source: new OSM()
+    }),
+    vectorLayer,
+    alerts_layer,
+    radar_layer,
+    
+  ],
+  view: new View({
+    center: fromLonLat([-114, 51]),
+    zoom: 12
+  })
+});
+
+var markers = new VectorLayer({
+  source: new Vector(),
+  style: new Style({
+    image: new Icon({
+      anchor: [0.5, 0.5],
+      src: '/static/location.svg'
+    })
+  })
+});
+map.addLayer(markers);
+
+var chasers = new VectorLayer({
+  source: new Vector(),
+  style: new Style({
+    image: new Icon({
+      anchor: [0.5, 0.5],
+      src: '/static/chaser.svg'
+    })
+  })
+});
+map.addLayer(chasers);
+
+
+var route = new VectorLayer({
+  source: new Vector(),
+  style: new Style({
+    stroke: new Stroke({
+      width: 3,
+      color: [255, 50, 0, 0.8]
+    }),
+  })
+});
+
+map.addLayer(route);
+var locations = [[51.1435, -114.257], [51.1441, -114.2583], [51.1451, -114.2606],[51.1463, -114.2639]];
+
+function regenLine(locations) {
+  locations.map(function(l) {
+    return l.reverse();
+  });
+  
+  var polyline = new LineString(locations);
+  polyline.transform('EPSG:4326', 'EPSG:3857');
+  var feature = new Feature(polyline);
+  var src =  new Vector()
+  src.addFeature(feature)
+  route.setSource(src)
+}
+regenLine(locations);
+
+var marker = new Feature(new Point(fromLonLat([-114, 51])));
+  chasers.getSource().addFeature(marker);
+
+var location = new Feature(new Point(fromLonLat([-114, 51])));
+    markers.getSource().addFeature(location);
+
+const watchID = navigator.geolocation.watchPosition((position) => {
+  location.latitude =position.coords.latitude
+  location.longitude =position.coords.longitude
+  location.setGeometry(new Point(fromLonLat([position.coords.longitude, position.coords.latitude])))
+  console.log(position.coords.latitude, position.coords.longitude);
+  if (lpings.checked)  {
+    fetch("/api/chsr", {
+      method: "POST",
+      body: JSON.stringify([
+        position.coords.latitude,
+        position.coords.longitude
+      ]),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8"
+      }
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        regenLine(json.route)
+        marker.setGeometry(new Point(fromLonLat(json.chsr)))
+      });
+  } else {
+    
+  }
+  
+});
+
+var checks = document.getElementById('checks_map')
+function makeBindLyr(name,o) {
+    var data = document.createElement("p");
+    var check = document.createElement("input");
+    check.type = "checkbox";
+    data.innerText = name;
+    //data.appendChild(check);
+    check.checked = o.getVisible()
+    data.insertAdjacentElement("afterbegin",check)
+    checks.appendChild(data)
+    
+
+    check.addEventListener('change', (event) => {
+        o.setVisible(check.checked);
+      })
+}
+makeBindLyr("Alerts",alerts_layer)
+makeBindLyr("Bounds",vectorLayer)
+makeBindLyr("Radar",radar_layer)
+
+
+
+var irtrv = () => {
+  fetch("/api/alerts/top")
+      .then((response) => response.json())
+      .then((json) => {
+          setAlert(json.mapped)
+      });
+      fetch("/api/conditions")
+      .then((response) => response.json())
+      .then((json) => {
+          sc.innerText = `${json["temperature"]}°C`;
+          wc.innerText = `${json["wind_chill"]}°C`;
+          fetch("/api/conditions/bft")
+              .then((rs) => rs.json())
+              .then((bft) => {
+                  wnd.innerText = `[ ${bft["icon"]} ] ${json["wind_speed"]} km/h at ${json["wind_bearing"]}°`
+              })
+      });
+      fetch("/api/alerts")
+        .then((response) => response.json())
+        .then((json) => {
+          for (const type of types) {
+              document.getElementById(`${type}`).innerHTML = ""
+          }
+          if (json.alerts.length > 0) {
+              for (const element of json.alerts) {
+                  alerts_warn(element.class,element.mapped,element.title)
+              }
+          }
+
+        });
+}
+setInterval(irtrv,15000)
+irtrv()
+setInterval(() => {
+  alerts_layer.getSource().refresh()
+},1000*5*60)

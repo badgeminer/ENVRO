@@ -2,7 +2,7 @@ var panes = {}
 panes.alerts = document.getElementById("alerts");
 panes.data = document.getElementById("data");
 //panes.forcast = document.getElementById("forcast");
-panes.map = document.getElementById("map");
+panes.map = document.getElementById("mapscrn");
 function swtch(name) {
     for (const p in panes) {
             const element = panes[p];

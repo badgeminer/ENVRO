@@ -5,7 +5,7 @@ import time
 
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
-from flask import Flask, json, jsonify, render_template, request,Response
+from flask import Flask, json, jsonify, render_template, request,Response,send_from_directory,redirect,send_file,url_for
 from flask_cors import CORS, cross_origin
 
 import dataPack
@@ -176,9 +176,15 @@ def maps():
 @app.route('/bar')
 def bar():
     return render_template('bar.html')
+
 @app.route('/main')
 def main():
-    return render_template('main.html')
+    return send_from_directory("static/my-app/dist/","index.html")
+
+@app.route('/assets/<path:key>')
+def assets(key):
+    return send_from_directory("static/my-app/dist/assets/",key)
+
 
 if __name__ == '__main__':
   app.run(host="0.0.0.0")
