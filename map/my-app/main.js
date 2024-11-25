@@ -34,23 +34,10 @@ const vectorLayer = new VectorImageLayer({
     url: 'https://api.weather.gc.ca/collections/public-standard-forecast-zones/items?f=json',
     format: new GeoJSON(),
   }),
-  style: [
-    {
-      filter: ['in', ['get', 'PROVINCE_C'],['literal',["AB","SK","MB","AB,SK"]]],
-      style: {
-        'stroke-color': "#000000",
-        'stroke-width': 0.5,
-      }
-    },
-    {
-      else:true,
-      style: {
-        "fill-color":"#00000055",
-        'stroke-color': "#00000077",
-        'stroke-width': 0.25,
-      }
-    }
-  ],
+  style: {
+    'stroke-color': "#000000",
+    'stroke-width': 0.5,
+  }
 });
 
 const alerts_layer = new VectorImageLayer({
@@ -118,6 +105,7 @@ radar_layer.getSource().on("imageloaderror", () => {
 
 
 
+
 function updateLayers() {
   radar_layer.getSource().updateParams({'TIME': currentTime.toISOString().split('.')[0]+"Z"});
   //radar_layer.getSource().updateParams({'TIME': currentTime.toISOString().split('.')[0]+"Z"});
@@ -132,9 +120,9 @@ const map = new Map({
     new TileLayer({
       source: new OSM()
     }),
-    //vectorLayer,
+    vectorLayer,
     alerts_layer,
-    //radar_layer,
+    radar_layer,
     
   ],
   view: new View({
@@ -225,3 +213,23 @@ const watchID = navigator.geolocation.watchPosition((position) => {
   }
   
 });
+
+var checks = document.getElementById('checks_map')
+function makeBind(name,o) {
+    var data = document.createElement("p");
+    var check = document.createElement("input");
+    check.type = "checkbox";
+    data.innerText = name;
+    //data.appendChild(check);
+    check.checked = o.getVisible()
+    data.insertAdjacentElement("afterbegin",check)
+    checks.appendChild(data)
+    
+
+    check.addEventListener('change', (event) => {
+        o.setVisible(check.checked);
+      })
+}
+makeBind("Alerts",alerts_layer)
+makeBind("Bounds",vectorLayer)
+makeBind("Radar",radar_layer)
