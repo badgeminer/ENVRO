@@ -2,9 +2,7 @@
 //document.getElementById("button-number").addEventListener("click", ()=>{eel.get_random_number()}, false);
 //document.getElementById("button-date").addEventListener("click", ()=>{eel.get_date()}, false);
 //document.getElementById("button-ip").addEventListener("click", ()=>{eel.get_ip()}, false);
-let sc = document.getElementById("temps");
-let wc = document.getElementById("temps_wind");
-let wnd = document.getElementById("wind");
+
 let warnsls = document.getElementById("warns");
 //eel.expose(prompt_alerts);
 function prompt_alerts(description) {
@@ -37,15 +35,18 @@ function refr(description) {
 }
 var timeDisplay = document.getElementById("time");
 var dateDisplay = document.getElementById("date");
-
+var timeDisplayL = document.getElementById("timeLocal");
+var dateDisplayL = document.getElementById("dateLocal");
 
 function refreshTime() {
   var d= new Date();
   var dateString = new Date().toLocaleString("en-US",);
   var formattedString = dateString.replace(", ", " - ");
-  formattedString = `${d.getUTCHours()}:${d.getUTCMinutes()}Z`
+  formattedString = `${d.toLocaleTimeString("en-CA",{hour12: false,second: '2-digit',hour: '2-digit', minute:'2-digit',timeZone: 'UTC'})}Z`
   timeDisplay.innerHTML = formattedString;
   dateDisplay.innerHTML = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+  dateDisplayL.innerHTML = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  timeDisplayL.innerHTML = `${d.toLocaleTimeString("en-CA",{hour12: false,hour: '2-digit', minute:'2-digit',second: '2-digit'})}`
 }
 
 setInterval(refreshTime, 1000);

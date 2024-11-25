@@ -1,10 +1,14 @@
-from flask import Flask, jsonify, json, request, render_template
-from flask_cors import CORS,cross_origin
-import sched, time,asyncio
-from cachetools import cached,TTLCache
-from env_canada import ECWeather
+import asyncio
+import sched,struct
 import threading
+import time
 
+from cachetools import TTLCache, cached
+from env_canada import ECWeather
+from flask import Flask, json, jsonify, render_template, request,Response
+from flask_cors import CORS, cross_origin
+
+import dataPack
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
@@ -16,8 +20,33 @@ types = [
     "statements",
     "endings"
 ]
+conditionTypes = [
+    "temperature",
+    "dewpoint",
+    "wind_speed",
+    "wind_chill",
+    "wind_bearing"
+]
+
+windLevels = [
+    {"max":1},
+    {"max":5},
+    {"max":11},
+    {"max":19},
+    {"max":28},
+    {"max":38},
+    {"max":49},
+    {"max":61},
+    {"max":74},
+    {"max":88},
+    {"max":102},
+    {"max":117},
+    {"max":133},
+]
+
 weather = {
-    "alerts" :[]
+    "alerts" :[],
+    "cond":{}
 }
 mapings = {
     "Tornado Warning":             "warns.TORNADO",
@@ -26,12 +55,23 @@ mapings = {
     "SEVERE THUNDERSTORM WATCH":   "watch.TSTORM",
     "Snowfall Warning": "warns.SNOW"
 }
+alertsMap = {}
+
+async def alertMap():
+    global alertsMap
+    alertsMap = dataPack.extract()
+    
+@cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+def getMap():
+    asyncio.run(alertMap())
+    return alertsMap
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def update():
     weather = {
         "alerts" :[
-        ]
+        ],
+        "cond":{}
     }
     try:
         print("up")
@@ -46,6 +86,8 @@ def update():
                     "title":i['title'],
                     "class":c
                 })
+    for c in conditionTypes:
+        weather["cond"][c] = ec_en.conditions[c]["value"]
     return weather
 
 route = [[51.1435, -114.257], [51.1441, -114.2583], [51.1451, -114.2606],[51.1463, -114.2639]]
@@ -83,7 +125,38 @@ def top_alert():
             "class":"warnings"
         })
     
-app.route("/api/tso")
+@app.route("/api/geojson/<name>")
+def geo(name):
+    return json.dumps(getMap()[name])
+
+@app.route("/api/geojson")
+def geokeys():
+    return json.dumps(tuple(getMap().keys()))
+
+@app.route("/api/geojson/merged")
+def geomerged():
+    return jsonify(dataPack.merge(getMap()))
+
+@app.route("/api/conditions")
+def conditions():
+    return jsonify(weather["cond"])
+
+
+def utf8_integer_to_unicode(n):
+    #s= hex(n)
+    #if len(s) % 2:
+    #    s= '0'+s
+    #return s.decode('hex').decode('utf-8')
+    return struct.pack(">H",n)
+
+@app.route("/api/conditions/bft")
+def conditionsbft():
+    print(b'')
+    for i,b in enumerate(windLevels):
+        if b["max"] >weather["cond"]["wind_speed"]+0.1:
+            return jsonify({"scale":i,"icon":chr(0xe3af+i)})
+
+@app.route("/api/tso")
 def tso():
     pass
 
@@ -92,14 +165,20 @@ def render_main():
     return render_template('alerts.html',alrt =True,data=False,forc=False,map=False,abs=False)
 @app.route('/data')
 def render_data():
-    return render_template('data.html',alrt =False,data=True,forc=False,map=False,abs=True)
+    return render_template('data.html',alrt =False,data=True,forc=False,map=False,abs=False)
 
 @app.route('/forcast')
 def render_forcast():
-    return render_template('forcast.html',alrt =False,data=False,forc=True,map=False,abs=True)
+    return render_template('forcast.html',alrt =False,data=False,forc=True,map=False,abs=False)
 @app.route('/map')
 def maps():
     return render_template('map.html',alrt =False,data=False,forc=False,map=True,abs=False)
+@app.route('/bar')
+def bar():
+    return render_template('bar.html')
+@app.route('/main')
+def main():
+    return render_template('main.html')
 
 if __name__ == '__main__':
   app.run(host="0.0.0.0")

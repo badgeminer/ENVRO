@@ -1,3 +1,6 @@
+let sc = document.getElementById("temps");
+let wc = document.getElementById("temps_wind");
+let wnd = document.getElementById("wind");
 var warns = {
     "TSTORM":" ",
     "TORNADO":" 󰼸",
@@ -73,7 +76,7 @@ function setAlert(alert) {
         top_alert.setAttribute("type","NONE")
         top_alert.style.setProperty("--prev",prev.bg)
         top_alert.style.setProperty("--cur",alertData.bg)
-        alertIcon.innerText = " 󰖐"
+        alertIcon.innerText = ""
         alertType.innerText = ""
     } else {
         
@@ -94,12 +97,23 @@ function setAlert(alert) {
 
     curAlert = alert
 }
-
-setInterval(() => {
+var irtrv = () => {
     fetch("/api/alerts/top")
-  .then((response) => response.json())
-  .then((json) => {
-    setAlert(json.mapped)
-    
-  });
-},15000)
+        .then((response) => response.json())
+        .then((json) => {
+            setAlert(json.mapped)
+        });
+        fetch("/api/conditions")
+        .then((response) => response.json())
+        .then((json) => {
+            sc.innerText = `${json["temperature"]}°C`;
+            wc.innerText = `${json["wind_chill"]}°C`;
+            fetch("/api/conditions/bft")
+                .then((rs) => rs.json())
+                .then((bft) => {
+                    wnd.innerText = `[ ${bft["icon"]} ] ${json["wind_speed"]} km/h at ${json["wind_bearing"]}°`
+                })
+        });
+}
+setInterval(irtrv,15000)
+irtrv()
