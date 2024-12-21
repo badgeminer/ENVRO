@@ -1,11 +1,27 @@
 import calendar
 import datetime
+import merge as mg
 import re
 import xml.sax.handler
 
 import dateutil.parser as duparser
 import requests
 from bs4 import BeautifulSoup
+
+
+def extract_urns(data: str):
+    """
+    Extract all `urn:oid` patterns from the given string.
+
+    Args:
+        data (str): The input string containing `urn:oid` patterns.
+
+    Returns:
+        list: A list of all `urn:oid` patterns found in the string.
+    """
+    # Regular expression to match `urn:oid` patterns
+    urn_pattern = r"urn:oid:[\w\d\.\-]+"
+    return re.findall(urn_pattern, data)
 
 R1 = re.compile(r"^\s{2,}", re.MULTILINE)
 
@@ -42,7 +58,11 @@ issu = ("CWNT","CWWG","CWVR")
 types = {
     "snowfall":1,
     "blizzard":2,
-    "tornado":4
+    "tornado":4,
+    "blowing snow":8,
+    "freezing rain":16,
+    "fog":32,
+    "wind":64
 }
 
 
@@ -160,6 +180,8 @@ def extract():
                 #pprint.pprint(tr['alert']['info'])
                 #print(tr["alert"]['info'][0]['event'])
                 alert ={"type": "FeatureCollection","features":[]}
+                if datetime.datetime.fromisoformat(tr["alert"]['info'][0]["expires"]).replace(tzinfo=None) <= datetime.datetime.utcnow():
+                    continue
                 if tr["alert"]['info'][0]["responseType"] != "AllClear":
                     for i in tr["alert"]['info'][0]["area"]:
                         coords_pair = str(i["polygon"]).split(" ")
@@ -184,34 +206,36 @@ def extract():
                                     "warn": tr["alert"]['info'][0]['event']
                                 }
                             })
-                    for r in tr["alert"]["references"].split("\n"):
+                    for r in extract_urns(tr["alert"]["references"]):
                         try:
-                            Rd = r.split(",")
-                            R = Rd[1]
-                            if alerts.get(R,None):
-                                del alerts[R]
-                            print(f"ended {R}")
+                            if alerts.get(r,None):
+                                del alerts[r]
+                                print(f"ended {r}")
+                            else:
+                                print(f"gone {r}")
                         except:
                             print("E",r)
                     alerts[tr["alert"]["identifier"]] = alert
                     print(f"set {tr['alert']['identifier']}")
                 else:
-                    
-                    for r in tr["alert"]["references"].split("\n"):
+                    for r in extract_urns(tr["alert"]["references"]):
                         try:
-                            Rd = r.split(",")
-                            R = Rd[1]
-                            if alerts.get(R,None):
-                                del alerts[R]
-                            print(f"ended {R}")
+                            if alerts.get(r,None):
+                                del alerts[r]
+                                print(f"ended {r}")
+                            else:
+                                print(f"gone {r}")
                         except:
                             print("E",r)
+                            
     return alerts
+
 def merge(alerts):
     alert ={"type": "FeatureCollection","features":[]}
     for k,v in alerts.items():
         for i in v["features"]:
             alert["features"].append(i)
+    alert = mg.merge_polygons_by_warn(alert)
     return alert
     
 if __name__ == "__main__":                 

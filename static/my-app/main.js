@@ -5,6 +5,7 @@ import {Vector,TileWMS} from 'ol/source.js';
 import {Icon,Style,Stroke} from 'ol/style.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
 import OSM from 'ol/source/OSM';
+import Overlay from "ol/Overlay"
 import {Point,LineString} from 'ol/geom';
 import {fromLonLat,useGeographic} from 'ol/proj.js';
 import VectorImageLayer from 'ol/layer/VectorImage.js';
@@ -12,6 +13,11 @@ import VectorImageLayer from 'ol/layer/VectorImage.js';
 import VectorSource from 'ol/source/Vector.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import Fill from 'ol/style/Fill.js';
+
+let container = document.getElementById("popup");
+let content = document.getElementById("popup-content");
+let closer = document.getElementById("popup-closer");
+let activeAlert = 1;
 
 //region main
 let warnsls = document.getElementById("warns");
@@ -280,6 +286,30 @@ const alerts_layer = new VectorImageLayer({
       }
     },
     {
+      filter: ['==', ['get', 'warn'],"blowing snow"],
+      style: {
+        "fill-color":"#7bb9d155",
+        'stroke-color': "#000000",
+        'stroke-width': 0.1,
+      }
+    },
+    {
+      filter: ['==', ['get', 'warn'],"wind"],
+      style: {
+        //"fill-color":"#ff004855",
+        'stroke-color': "#ff0048",
+        'stroke-width': 1.5,
+      }
+    },
+    {
+      filter: ['==', ['get', 'warn'],"freezing rain"],
+      style: {
+        //"fill-color":"#002dbf55",
+        'stroke-color': "#002dbf",
+        'stroke-width': 1.5,
+      }
+    },
+    {
       else:true,
       style: {
         "fill-color":"#11111155",
@@ -327,6 +357,18 @@ function updateLayers() {
 }
 
 
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+let overlay = new Overlay({
+  element: container,
+  autoPan: true,
+  autoPanAnimation: {
+    duration: 250
+  }
+});
+
+
 var lpings = document.getElementById("locPing");
 //useGeographic()
 const map = new Map({
@@ -337,9 +379,11 @@ const map = new Map({
     }),
     vectorLayer,
     alerts_layer,
+    alertsO_layer,
     radar_layer,
     
   ],
+  overlays: [overlay],
   view: new View({
     center: fromLonLat([-114, 51]),
     zoom: 12
@@ -446,8 +490,83 @@ function makeBindLyr(name,o) {
       })
 }
 makeBindLyr("Alerts",alerts_layer)
+makeBindLyr("ECCC Alerts",alertsO_layer)
 makeBindLyr("Bounds",vectorLayer)
 makeBindLyr("Radar",radar_layer)
+
+
+
+
+
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function () {
+  overlay.setPosition(undefined);
+  closer.blur();
+  return false;
+};
+
+
+map.on("singleclick", function (evt) {
+  // reset state
+  //nav.style.display = 'none'
+  activeAlert = 1
+  overlay.setPosition(undefined);
+  // get coordinates
+  let coordinate = evt.coordinate;
+  let viewResolution = map.getView().getResolution();
+  let wms_source = alertsO_layer.getSource();
+  let url = wms_source.getFeatureInfoUrl(
+    coordinate,
+    viewResolution,
+    "EPSG:3857", {
+    INFO_FORMAT: "application/json",
+    FEATURE_COUNT: 10
+  }
+  );
+  if (url) {
+    fetch(url)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (json) {
+        if (json.features.length > 0) {
+          overlay.setPosition(evt.coordinate);
+          let alerts = json.features.map((e, i) => {
+            let alert_area = e.properties.area;
+            let alert_headline = e.properties.headline;
+            let alert_type = e.properties.alert_type;
+            let alert_description = e.properties.descrip_en;
+            let effective_datetime = e.properties.effective
+            let expires_datetime = (e.properties.expires)
+            return `
+            <div id=alert-${i + 1} ${i > 0 ? "style='display: none;'" : ""}>
+              <b>${alert_area}</b><br>
+              <b><span style="text-transform: capitalize;">${alert_headline}<span></b><br><br>
+              Alert type: <span style="text-transform: capitalize;">${alert_type}</span><br>
+              Effective: ${effective_datetime}<br>
+              Expires: ${expires_datetime}<br>
+              <br>
+              <div class="alert-descrip"><b>Description:</b> <br> ${alert_description}</div>
+           </div>
+          `;
+          });
+          if (json.features.length > 1) {
+            navText.innerText = `${activeAlert} of ${json.features.length}`
+            nav.style.display = 'flex';
+            nav.style.justifyContent = 'center';
+            nav.style.flexDirection = 'column';
+            nav.style.alignItems = 'center';
+          }
+          let alerts_join = alerts.join("");
+          content.innerHTML = alerts_join;
+        }
+      });
+  }
+});
 
 
 

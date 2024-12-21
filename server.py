@@ -1,7 +1,7 @@
 import asyncio
 import sched,struct
 import threading
-import time
+import time,merge
 
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
