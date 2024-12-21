@@ -3,8 +3,7 @@ import merge as mg
 from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import orient
 import xml.etree.ElementTree as ET
-from datetime import datetime
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
 import datetime,requests
@@ -76,18 +75,18 @@ def parse_cap(content: str) -> dict:
         # Effective time is optional
         effective_element = root.find('cap:info/cap:effective', ns)
         effective_time = (
-            datetime.fromisoformat(effective_element.text).replace(tzinfo=None)
+            datetime.datetime.fromisoformat(effective_element.text).replace(tzinfo=None)
             if effective_element is not None
             else None
         )
 
         # Expiry time
-        expires_time = datetime.fromisoformat(expires).replace(tzinfo=None)
-        current_time = datetime.utcnow()
+        expires_time = datetime.datetime.fromisoformat(expires).replace(tzinfo=None)
+        current_time = datetime.datetime.utcnow()
         
         # Extract the alert identifier and references
         identifier = root.find('cap:identifier', ns).text
-        event = root.find('cap:event', ns).text
+        event = root.find('cap:info/cap:event', ns).text
         references_element = root.find('cap:references', ns)
 
         # Extract OIDs from references (the second element in each reference entry)
@@ -109,7 +108,7 @@ def parse_cap(content: str) -> dict:
                             "type": "Polygon",
                             "coordinates": [list(polygon.exterior.coords)]
                         },
-                        "properties": {"warn":types[event]}
+                        "properties": {"warn":event}
                     })
             
             # If the area is a circle
@@ -128,7 +127,7 @@ def parse_cap(content: str) -> dict:
                         "type": "Polygon",
                         "coordinates": [list(buffer.exterior.coords)]
                     },
-                    "properties": {"warn":types[event]}
+                    "properties": {"warn":event}
                 })
         
         # Check if the alert is in effect
@@ -148,8 +147,8 @@ def parse_cap(content: str) -> dict:
             }
     except ET.ParseError as e:
         print(f"XML parsing error in: {e}")
-    except Exception as e:
-        print(f"Error parsing: {e}")
+    #except Exception as e:
+    #    print(f"Error parsing: {e}")
     return None
 
 
@@ -265,13 +264,13 @@ def merge(alerts):
     for a in alerts:
         for A in a["areas"]:
             areas.append(A)
-    return {
+    return mg.merge_polygons_by_warn({
         "type": "FeatureCollection",
         "features": areas
-    }
-# Example usage
-cap_folder = "cap/"  # Replace with the actual path
-alerts = get_in_effect_alerts(cap_folder)
-
-for alert in alerts:
-    print(alert)
+    })
+## Example usage
+#cap_folder = "cap/"  # Replace with the actual path
+#alerts = get_in_effect_alerts(cap_folder)
+#
+#for alert in alerts:
+#    print(alert)

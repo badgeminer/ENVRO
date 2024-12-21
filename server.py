@@ -8,7 +8,7 @@ from env_canada import ECWeather
 from flask import Flask, json, jsonify, render_template, request,Response,send_from_directory,redirect,send_file,url_for
 from flask_cors import CORS, cross_origin
 
-import dataPack
+import dataPack,pcap
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
@@ -59,7 +59,7 @@ alertsMap = {}
 
 async def alertMap():
     global alertsMap
-    alertsMap = dataPack.extract()
+    alertsMap = pcap.fetch()
     
 @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
 def getMap():
@@ -131,11 +131,11 @@ def geo(name):
 
 @app.route("/api/geojson")
 def geokeys():
-    return json.dumps(tuple(getMap().keys()))
+    return json.dumps(tuple(getMap()))
 
 @app.route("/api/geojson/merged")
 def geomerged():
-    return jsonify(dataPack.merge(getMap()))
+    return jsonify(pcap.merge(getMap()))
 
 @app.route("/api/conditions")
 def conditions():
