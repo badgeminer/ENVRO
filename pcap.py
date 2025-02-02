@@ -208,7 +208,6 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
     Returns:
         list: A list of dictionaries containing "in effect" alerts, with updates handled correctly.
     """
-    
     for dat in cap:
         alert = parse_cap(dat)
         if alert:
@@ -228,9 +227,22 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
             else:
                 # Add the new alert if it's not already tracked
                 alerts_in_effect[alert_id] = alert
-    
+    with open("OUT.json","w") as f:
+        json.dump(list(alerts_in_effect.values()),f)
     return list(alerts_in_effect.values())
-
+def cache(sql:sqlite3.Cursor,url):
+    sql.execute("SELECT EXISTS(SELECT 1 FROM Alerts WHERE id=?)",(url,))
+    fth =  sql.fetchone()
+    #print(fth)
+    if not fth[0]:
+        logging.info(url)
+        R = requests.get(url)
+        sql.execute("INSERT INTO Alerts (id,data) VALUES (?,?)",(url,R.text))
+        return R.text
+    else:
+        sql.execute("SELECT data FROM Alerts WHERE id=?",(url,))
+        fth =  sql.fetchone()
+        return fth[0]
 def fetch():
     global lookback
     t = datetime.datetime.now(datetime.timezone.utc)
@@ -241,14 +253,17 @@ def fetch():
         #print(f"{d.day} -> {d.hour}")
         
         for iss in issu:
-            url = f'https://dd.weather.gc.ca/{d.year}{d.month}{d.day}/WXO-DD/alerts/cap/{d.year}{d.month}{d.day}/{iss}/{d.hour:>02}/'
-            logging.info(url)
+            conn = sqlite3.connect("alert.db")
+            cur = conn.cursor()
+            url = f'https://dd.weather.gc.ca/{d.year}{d.month:>02}{d.day:>02}/WXO-DD/alerts/cap/{d.year}{d.month:>02}{d.day:>02}/{iss}/{d.hour:>02}/'
             result: list[str] = get_url_paths(url, "cap")
             #for p in prov:
             #    print(f"{d.year}{d.month}{d.day}/CWNT/{d.hour}/T_{p}CN")
             for r,name in result:
-                R = requests.get(r)
-                dat.append(R.text)
+                R = cache(cur,r)
+                dat.append(R)
+            conn.commit()
+            conn.close()
     lookback = 1
     return get_in_effect_alerts_web(dat)
 def merge(alerts):
