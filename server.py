@@ -152,7 +152,7 @@ def utf8_integer_to_unicode(n):
 def conditionsbft():
     print(b'')
     for i,b in enumerate(windLevels):
-        if b["max"] > weather["cond"]["wind_speed"]+0.1:
+        if b["max"] > weather["cond"].get("wind_speed",0)+0.1:
             return jsonify({"scale":i,"icon":chr(0xe3af+i)})
 
 @app.route("/api/tso")
