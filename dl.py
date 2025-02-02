@@ -1,5 +1,6 @@
 import datetime,requests
 from bs4 import BeautifulSoup
+import xml.etree.ElementTree as ET
 
 issu = ("CWNT","CWWG","CWVR")
 
@@ -15,7 +16,7 @@ def get_url_paths(url, ext='', params={}):
 
 t = datetime.datetime.now(datetime.timezone.utc)
 
-for i in range(24,0,-1):
+for i in range(48,0,-1):
     T = datetime.timedelta(hours=i)
     d = t-T
     #print(f"{d.day} -> {d.hour}")
@@ -27,5 +28,15 @@ for i in range(24,0,-1):
         #    print(f"{d.year}{d.month}{d.day}/CWNT/{d.hour}/T_{p}CN")
         for r,name in result:
             R = requests.get(r)
-            with open(f"cap/{name}","w") as f:
-                f.write(R.text)
+            root = ET.fromstring(R.text)
+        
+            # CAP namespace handling
+            ns = {'cap': 'urn:oasis:names:tc:emergency:cap:1.2'}
+            
+            # Extract relevant fields
+            status = root.find('cap:status', ns).text  # Example: "Actual"
+            response_type = root.find('cap:info/cap:responseType', ns)
+            event = root.find('cap:info/cap:event', ns).text
+            if event == "freezing rain":
+                with open(f"cap/{name}","w") as f:
+                    f.write(R.text)

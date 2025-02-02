@@ -113,8 +113,7 @@ def routes():
 def alerts():
     global weather
     weather = update()
-    return json.dumps(
-        weather)
+    return jsonify(weather["alerts"])
 @app.route("/api/alerts/top")
 def top_alert():
     if len(weather["alerts"]):

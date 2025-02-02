@@ -1,15 +1,18 @@
-import os,logging,re,json
+import os,logging,re,json,sqlite3
 import merge as mg
 from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import orient
 import xml.etree.ElementTree as ET
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 import datetime,requests
 from bs4 import BeautifulSoup
 
 issu = ("CWNT","CWWG","CWVR")
+
+alerts_in_effect = {}
+lookback = 24
 
 def get_url_paths(url, ext='', params={}):
     response = requests.get(url, params=params)
@@ -99,7 +102,7 @@ def parse_cap(content: str) -> dict:
             if polygon_element is not None:
                 polygon_coords = polygon_element.text.strip().split()
                 # Convert to list of tuples
-                coordinates = [tuple(map(float, coord.split(','))) for coord in polygon_coords]
+                coordinates = [(tuple(map(float, coord.split(','))))[::-1] for coord in polygon_coords]
                 polygon = Polygon(coordinates)
                 if polygon.is_valid:
                     areas.append({
@@ -110,29 +113,10 @@ def parse_cap(content: str) -> dict:
                         },
                         "properties": {"warn":event}
                     })
-            
-            # If the area is a circle
-            circle_element = area.find('cap:circle', ns)
-            if circle_element is not None:
-                center_coords = circle_element.text.strip().split(',')
-                latitude = float(center_coords[0])
-                longitude = float(center_coords[1])
-                radius = float(center_coords[2])
-                # Convert to GeoJSON point with buffer (approximation)
-                point = Point(longitude, latitude)
-                buffer = point.buffer(radius / 111.32)  # Approximate buffer in degrees for radius in km
-                areas.append({
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [list(buffer.exterior.coords)]
-                    },
-                    "properties": {"warn":event}
-                })
         
         # Check if the alert is in effect
         
-        if status == "Actual" and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
+        if status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
                 "status": status,
                 "effective": effective_element.text if effective_element is not None else None,
@@ -145,6 +129,8 @@ def parse_cap(content: str) -> dict:
                 "description": root.find('cap:info/cap:description', ns).text,
                 "areas":areas
             }
+        elif current_time >= expires_time:
+            logging.warning("Expired")
     except ET.ParseError as e:
         print(f"XML parsing error in: {e}")
     #except Exception as e:
@@ -201,9 +187,13 @@ def get_in_effect_alerts(cap_folder: str) -> list:
                         else:
                             # Otherwise, replace the old alert with the new one
                             alerts_in_effect[alert_id] = alert
+                            for r in alert.get("references"):
+                                alerts_in_effect[r]["expires"] = alert["expires"]
                     else:
                         # Add the new alert if it's not already tracked
                         alerts_in_effect[alert_id] = alert
+                        for r in alert.get("references"):
+                            alerts_in_effect[r]["expires"] = alert["expires"]
     
     
     return list(alerts_in_effect.values())
@@ -218,7 +208,6 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
     Returns:
         list: A list of dictionaries containing "in effect" alerts, with updates handled correctly.
     """
-    alerts_in_effect = {}
     
     for dat in cap:
         alert = parse_cap(dat)
@@ -243,21 +232,24 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
     return list(alerts_in_effect.values())
 
 def fetch():
+    global lookback
     t = datetime.datetime.now(datetime.timezone.utc)
     dat = []
-    for i in range(24,0,-1):
+    for i in range(lookback,0,-1):
         T = datetime.timedelta(hours=i)
         d = t-T
         #print(f"{d.day} -> {d.hour}")
         
         for iss in issu:
-            url = f'https://dd.weather.gc.ca/alerts/cap/{d.year}{d.month}{d.day}/{iss}/{d.hour}/'
+            url = f'https://dd.weather.gc.ca/{d.year}{d.month}{d.day}/WXO-DD/alerts/cap/{d.year}{d.month}{d.day}/{iss}/{d.hour:>02}/'
+            logging.info(url)
             result: list[str] = get_url_paths(url, "cap")
             #for p in prov:
             #    print(f"{d.year}{d.month}{d.day}/CWNT/{d.hour}/T_{p}CN")
             for r,name in result:
                 R = requests.get(r)
                 dat.append(R.text)
+    lookback = 1
     return get_in_effect_alerts_web(dat)
 def merge(alerts):
     areas = []

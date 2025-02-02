@@ -260,7 +260,7 @@ html {
 
 
 .warnPane {
-  width: 37px;
+  width: 58px;
   height: 58px;
   background-size: 200%;
   transition: .5s ease-out;
@@ -296,8 +296,8 @@ iframe {
   border: 1px solid #cccccc;
   bottom: 12px;
   left: -50px;
-  min-width: 280px;
-  font-size: 15px;
+  min-width: 380px;
+  font-size: 12px;
 }
 .ol-popup:after, .ol-popup:before {
   top: 100%;

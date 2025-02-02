@@ -272,32 +272,32 @@ const alerts_layer = new VectorImageLayer({
     {
       filter: ['==', ['get', 'warn'],"snowfall"],
       style: {
-        "fill-color":"#03c2fc55",
-        'stroke-color': "#000000",
-        'stroke-width': 0.1,
+        //"fill-color":"#03c2fc55",
+        'stroke-color': "#03c2fc",
+        'stroke-width': 1.5,
       }
     },
     {
       filter: ['==', ['get', 'warn'],"blizzard"],
       style: {
-        "fill-color":"#00007755",
-        'stroke-color': "#000000",
-        'stroke-width': 0.1,
+        //"fill-color":"#00007755",
+        'stroke-color': "#3f92d1",
+        'stroke-width': 1.5,
       }
     },
     {
       filter: ['==', ['get', 'warn'],"blowing snow"],
       style: {
-        "fill-color":"#7bb9d155",
-        'stroke-color': "#000000",
-        'stroke-width': 0.1,
+        //"fill-color":"#7bb9d155",
+        'stroke-color': "#03c2fc",
+        'stroke-width': 1.5,
       }
     },
     {
       filter: ['==', ['get', 'warn'],"wind"],
       style: {
         //"fill-color":"#ff004855",
-        'stroke-color': "#ff0048",
+        'stroke-color': "#ffa200",
         'stroke-width': 1.5,
       }
     },
@@ -306,6 +306,14 @@ const alerts_layer = new VectorImageLayer({
       style: {
         //"fill-color":"#002dbf55",
         'stroke-color': "#002dbf",
+        'stroke-width': 1.5,
+      }
+    },
+    {
+      filter: ['==', ['get', 'warn'],"fog"],
+      style: {
+        //"fill-color":"#002dbf55",
+        'stroke-color': "#80a1ba",
         'stroke-width': 1.5,
       }
     },
@@ -370,13 +378,31 @@ let overlay = new Overlay({
 
 
 var lpings = document.getElementById("locPing");
+
+const tile = new TileLayer({
+  source: new OSM()
+});
+tile.on('prerender', (evt) => {
+  // return
+  if (evt.context) {
+    const context = evt.context;
+    context.filter = 'invert(100%) hue-rotate(180deg) ';
+    context.globalCompositeOperation = 'source-over';
+  }
+});
+
+tile.on('postrender', (evt) => {
+  if (evt.context) {
+    const context = evt.context;
+    context.filter = 'none';
+  }
+});
+
 //useGeographic()
 const map = new Map({
   target: 'map',
   layers: [
-    new TileLayer({
-      source: new OSM()
-    }),
+    tile,
     vectorLayer,
     alerts_layer,
     alertsO_layer,
@@ -593,8 +619,8 @@ var irtrv = () => {
           for (const type of types) {
               document.getElementById(`${type}`).innerHTML = ""
           }
-          if (json.alerts.length > 0) {
-              for (const element of json.alerts) {
+          if (json.length > 0) {
+              for (const element of json) {
                   alerts_warn(element.class,element.mapped,element.title)
               }
           }
@@ -605,4 +631,5 @@ setInterval(irtrv,15000)
 irtrv()
 setInterval(() => {
   alerts_layer.getSource().refresh()
+  radar_layer.getSource().refresh()
 },1000*5*60)
