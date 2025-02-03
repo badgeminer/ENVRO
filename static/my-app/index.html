@@ -28,6 +28,7 @@
     <p id="allICONS"></p>
   </div>
   <div id="mapscrn" class="padtop scale no_overflow ">
+    
     <div id="map">
       <div class="ol-overlay-container ol-selectable"
         style="position: absolute; pointer-events: auto; transform: translate(0%, 0%) translate(502px, 232px);">
@@ -53,10 +54,14 @@
         
       </div>
       
-      </div>
-      <div class="locPing"><input type="checkbox" id="locPing">Location Pings</div>
-      <div id="checks_map" class="locPing layers"></div>
     </div>
+    <div class="locPing"><input type="checkbox" id="locPing">Location Pings</div>
+    <div id="checks_map" class="locPing layers"><table id="legend">
+      
+      </table></div>
+    
+  </div>
+
     <div id="data" class="padtop scale no_overflow" hidden>
       <img id="shear" class="overlay semi" src="https://wmiradar.com/ahsp/rap/current_run/RAP_HLCYSHR_F06.png">
       <img id="MUCAPE" class="overlay semi" src="https://wmiradar.com/ahsp/rap/current_run/RAP_MUCAPE_F06.png">
@@ -67,7 +72,7 @@
       <div id="checks" class="layers"></div>
     </div>
 
-    <div class="topnav {% if abs %}absPos{% endif %}">
+    <div class="topnav">
       <span id="topWarn" class="warnPane twoLineData">
         <p id="warn" class="no_margin" style="font-size: 20px;"></p>
         <p id="warnType" class="no_margin" style="font-size: 10px;">LOADING</p>

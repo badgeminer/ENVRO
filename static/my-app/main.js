@@ -4,6 +4,7 @@ import {Map, View} from 'ol';
 import {Vector,TileWMS} from 'ol/source.js';
 import {Icon,Style,Stroke} from 'ol/style.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
+import {DEVICE_PIXEL_RATIO} from 'ol/has.js';
 import OSM from 'ol/source/OSM';
 import Overlay from "ol/Overlay"
 import {Point,LineString} from 'ol/geom';
@@ -14,10 +15,15 @@ import VectorSource from 'ol/source/Vector.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import Fill from 'ol/style/Fill.js';
 
+const pixelRatio = DEVICE_PIXEL_RATIO;
+
 let container = document.getElementById("popup");
 let content = document.getElementById("popup-content");
 let closer = document.getElementById("popup-closer");
 let activeAlert = 1;
+
+var saturation = 100
+var brightness = 100
 
 //region main
 let warnsls = document.getElementById("warns");
@@ -261,6 +267,68 @@ const vectorLayer = new VectorImageLayer({
   }
 });
 
+
+const canvas = document.createElement('canvas');
+const context = canvas.getContext('2d');
+const wspout_stripes = context.createLinearGradient(0, 0, 1024 * pixelRatio, 0);
+wspout_stripes.addColorStop(0, 'orange');
+wspout_stripes.addColorStop(1 / 6, '#00000000');
+wspout_stripes.addColorStop(2 / 6, 'orange');
+wspout_stripes.addColorStop(3 / 6, '#00000000');
+wspout_stripes.addColorStop(4 / 6, 'orange');
+wspout_stripes.addColorStop(5 / 6, '#00000000');
+wspout_stripes.addColorStop(1, 'orange');
+const warnColors = {
+  "snowfall":"#00ffff",
+  "blowing snow":"#008fbb",
+  
+  "winter storm":"#67c9bc",
+  "blizzard":"#3f92d1",
+  
+  "arctic outflow":"#03c2fc",
+  "extreme cold":"#0004ff",
+
+  "freezing rain":"#002dbf",
+  "fog":"#80a1ba",
+  "rainfall":"#00ff00",
+  
+  
+
+  "weather":"#595959",
+  "wind":"#ffa200",
+  "waterspout":"#F03500",
+  "special marine":"#D06018",
+
+  "tornado":"#FF0000"
+
+}
+
+function makeStyle() {
+  var legend =document.getElementById("legend")
+  var s = []
+  for (var element in warnColors) {
+    var col = warnColors[element]
+    legend.innerHTML += `<tr><td style="background-color: ${col};">~</td><td>${element.toUpperCase()}</td></tr>`
+    s.push({
+      filter: ['==', ['get', 'warn'],element],
+      style: {
+        //"fill-color":"#03c2fc55",
+        'stroke-color': col,
+        'stroke-width': 1.5,
+      }
+    })
+  }
+  s.push({
+    else:true,
+    style: {
+      "fill-color":"#FFFFFFF1",
+      'stroke-color': "#00000077",
+      'stroke-width': 5,
+    }
+  })
+  return s
+}
+
 const alerts_layer = new VectorImageLayer({
   background: '#00000000',
   imageRatio: 2,
@@ -268,64 +336,7 @@ const alerts_layer = new VectorImageLayer({
     url: '/api/geojson/merged',
     format: new GeoJSON(),
   }),
-  style: [
-    {
-      filter: ['==', ['get', 'warn'],"snowfall"],
-      style: {
-        //"fill-color":"#03c2fc55",
-        'stroke-color': "#03c2fc",
-        'stroke-width': 1.5,
-      }
-    },
-    {
-      filter: ['==', ['get', 'warn'],"blizzard"],
-      style: {
-        //"fill-color":"#00007755",
-        'stroke-color': "#3f92d1",
-        'stroke-width': 1.5,
-      }
-    },
-    {
-      filter: ['==', ['get', 'warn'],"blowing snow"],
-      style: {
-        //"fill-color":"#7bb9d155",
-        'stroke-color': "#03c2fc",
-        'stroke-width': 1.5,
-      }
-    },
-    {
-      filter: ['==', ['get', 'warn'],"wind"],
-      style: {
-        //"fill-color":"#ff004855",
-        'stroke-color': "#ffa200",
-        'stroke-width': 1.5,
-      }
-    },
-    {
-      filter: ['==', ['get', 'warn'],"freezing rain"],
-      style: {
-        //"fill-color":"#002dbf55",
-        'stroke-color': "#002dbf",
-        'stroke-width': 1.5,
-      }
-    },
-    {
-      filter: ['==', ['get', 'warn'],"fog"],
-      style: {
-        //"fill-color":"#002dbf55",
-        'stroke-color': "#80a1ba",
-        'stroke-width': 1.5,
-      }
-    },
-    {
-      else:true,
-      style: {
-        "fill-color":"#11111155",
-        'stroke-color': "#00000077",
-        'stroke-width': 1,
-      }
-    }
-  ],
+  style: makeStyle(),
 });
 
 const alertsO_layer = new TileLayer({
@@ -386,7 +397,7 @@ tile.on('prerender', (evt) => {
   // return
   if (evt.context) {
     const context = evt.context;
-    context.filter = 'invert(100%) hue-rotate(180deg) ';
+    context.filter = `invert(100%) hue-rotate(180deg) saturate(${saturation}%) brightness(${brightness}%)`;
     context.globalCompositeOperation = 'source-over';
   }
 });
@@ -515,11 +526,32 @@ function makeBindLyr(name,o) {
         o.setVisible(check.checked);
       })
 }
+function makesat(name) {
+  var data = document.createElement("p");
+  var check = document.createElement("input");
+  check.type = "checkbox";
+  data.innerText = name;
+  //data.appendChild(check);
+  check.checked = false;
+  data.insertAdjacentElement("afterbegin",check)
+  checks.appendChild(data)
+  
+
+  check.addEventListener('change', (event) => {
+      if (check.checked) {
+        saturation = 5;
+        brightness = 35;
+      } else {
+        saturation = 100;
+        brightness = 100;
+      }
+    })
+}
 makeBindLyr("Alerts",alerts_layer)
 makeBindLyr("ECCC Alerts",alertsO_layer)
 makeBindLyr("Bounds",vectorLayer)
 makeBindLyr("Radar",radar_layer)
-
+makesat("Desaturate")
 
 
 
@@ -553,6 +585,7 @@ map.on("singleclick", function (evt) {
     FEATURE_COUNT: 10
   }
   );
+  console.log(url)
   if (url) {
     fetch(url)
       .then(function (response) {

@@ -159,24 +159,12 @@ def conditionsbft():
 def tso():
     pass
 
-@app.route('/')
-def render_main():
-    return render_template('alerts.html',alrt =True,data=False,forc=False,map=False,abs=False)
-@app.route('/data')
-def render_data():
-    return render_template('data.html',alrt =False,data=True,forc=False,map=False,abs=False)
 
-@app.route('/forcast')
-def render_forcast():
-    return render_template('forcast.html',alrt =False,data=False,forc=True,map=False,abs=False)
-@app.route('/map')
-def maps():
-    return render_template('map.html',alrt =False,data=False,forc=False,map=True,abs=False)
 @app.route('/bar')
 def bar():
     return render_template('bar.html')
 
-@app.route('/main')
+@app.route('/')
 def main():
     return send_from_directory("static/my-app/dist/","index.html")
 

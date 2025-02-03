@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 issu = ("CWNT","CWWG","CWVR")
 
 alerts_in_effect = {}
-lookback = 24
+lookback = 48
 
 def get_url_paths(url, ext='', params={}):
     response = requests.get(url, params=params)
@@ -25,13 +25,14 @@ def get_url_paths(url, ext='', params={}):
     return parent
 
 types = {
-    "snowfall":1,
-    "blizzard":2,
-    "tornado":4,
-    "blowing snow":8,
-    "freezing rain":16,
-    "fog":32,
-    "wind":64
+    "snowfall":      0b00000001,
+    "blizzard":      0b00000010,
+    "tornado":       0b00000100,
+    "blowing snow":  0b00001000,
+    "freezing rain": 0b00010000,
+    "fog":           0b00100000,
+    "wind":          0b01000000,
+    "arctic outflow":0b10000000
 }
 
 def extract_urns(data: str):
@@ -219,7 +220,9 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
                 
                 if alert.get("responseType") == "AllClear":
                     for r in alert.get("references"):
-                        del alerts_in_effect[r]
+                        try:
+                            del alerts_in_effect[r]
+                        except: pass
                     del alerts_in_effect[alert_id]
                 else:
                     # Otherwise, replace the old alert with the new one
@@ -233,7 +236,7 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
 def cache(sql:sqlite3.Cursor,url):
     sql.execute("SELECT EXISTS(SELECT 1 FROM Alerts WHERE id=?)",(url,))
     fth =  sql.fetchone()
-    #print(fth)
+    print(fth)
     if not fth[0]:
         logging.info(url)
         R = requests.get(url)
