@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 issu = ("CWNT","CWWG","CWVR")
 
 alerts_in_effect = {}
-lookback = 48
+lookback = 24
 
 def get_url_paths(url, ext='', params={}):
     response = requests.get(url, params=params)
