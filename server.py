@@ -238,7 +238,7 @@ def outLog():
         m = ""
         for i in log_messages:
             m += f"{conv.convert(i)}"
-        return f"{m}<br>END OF LOG"
+        return m
     return streamLog()
 
 def utf8_integer_to_unicode(n):
