@@ -146,12 +146,6 @@ async def alertMap():
     global alertsMap
     alertsMap = pcap.fetch()
     
-@cached(cache=TTLCache(maxsize=1024, ttl=60*5))
-
-def getMap():
-    logging.warning("DEPERICATED")
-    asyncio.run(alertMap())
-    return alertsMap
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def update():
@@ -214,14 +208,6 @@ def top_alert():
             "class":"warnings"
         })
     
-    
-@app.route("/api/geojson/<name>")
-def geo(name):
-    return json.dumps(getMap()[name])
-
-@app.route("/api/geojson")
-def geokeys():
-    return json.dumps(tuple(getMap()))
 
 @app.route("/api/geojson/merged")
 def geomerged():
