@@ -119,9 +119,9 @@ def parse_cap(content: str) -> dict:
         if current_time >= expires_time:
             logging.debug(f"Expired")
             return
-        elif effective_time is not None and effective_time <= current_time:
-            logging.debug(f"Upcomming")
-            return
+        #elif effective_time is not None and effective_time <= current_time:
+        #    logging.info(f"Upcomming {effective_time-current_time}")
+        #    return
         elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
                 "status": status,
