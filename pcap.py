@@ -116,8 +116,9 @@ def parse_cap(content: str) -> dict:
                     })
         
         # Check if the alert is in effect
-        
-        if status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
+        if current_time >= expires_time:
+            logging.debug("Expired")
+        elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
                 "status": status,
                 "effective": effective_element.text if effective_element is not None else None,
@@ -130,10 +131,9 @@ def parse_cap(content: str) -> dict:
                 "description": root.find('cap:info/cap:description', ns).text,
                 "areas":areas
             }
-        elif current_time >= expires_time:
-            logging.warning("Expired")
+        
     except ET.ParseError as e:
-        print(f"XML parsing error in: {e}")
+        logging.error(f"XML parsing error in: {e}")
     #except Exception as e:
     #    print(f"Error parsing: {e}")
     return None
