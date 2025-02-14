@@ -92,12 +92,14 @@ function update(url) {
 
 let sc = document.getElementById("temps");
 let wc = document.getElementById("temps_wind");
+let cnd = document.getElementById("cond");
 let wnd = document.getElementById("wind");
 var warns = {
     "TSTORM":" ",
     "TORNADO":" 󰼸",
     "HEAT":" ",
-    "SNOW":"󰼩"
+    "SNOW":"󰼩",
+    "COLD":""
 }
 var watch = {
     "TSTORM":"󰼯 ",
@@ -110,6 +112,7 @@ var prioritys = [
     "warns.TSTORM",
     "watch.TSTORM",
     "warns.HEAT",
+    "warns.COLD",
     "test"
 ]
 var alerts= {
@@ -142,6 +145,24 @@ for (const key in watch) {
         "symbols": element,
         "text":key
     }
+}
+
+const weatherTypes = {
+  cloudy: "󰖐",
+  fog:"󰖑",
+  hail:"󰖒",
+  lightning:"󰖓",
+  pouring:"󰖖",
+  raining:"󰖗",
+  snowing:"󰖘",
+  clear:"󰖙",
+  tornado:"󰼸",
+  windy:"󰖝",
+  thunderstorm:"󰙾",
+  partlyCloudy:"󰖕",
+  snowrain:"󰙿",
+  partcloud:"󰖕",
+  err:"󰼯"
 }
 
 var top_alert = document.getElementById("topWarn");
@@ -641,6 +662,7 @@ var irtrv = () => {
       .then((json) => {
           sc.innerText = `${json["temperature"]}°C`;
           wc.innerText = `${json["wind_chill"]}°C`;
+          cnd.innerText = `${weatherTypes[json["icon_code"]]}`
           fetch("/api/conditions/bft")
               .then((rs) => rs.json())
               .then((bft) => {
