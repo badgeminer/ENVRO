@@ -251,8 +251,8 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
             else:
                 # Add the new alert if it's not already tracked
                 alerts_in_effect[alert_id] = alert
-                cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,msgType,type) VALUES (?,?,?,?,?,?)",
-                                (alert_id,alert["effective"],alert["expires"],alert["urgency"],alert["msgType"],alert["type"]))
+                cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,msgType,type,references) VALUES (?,?,?,?,?,?,?)",
+                                (alert_id,alert["effective"],alert["expires"],alert["urgency"],alert["msgType"],alert["type"],json.dumps(alert["references"])))
             conn.commit()
             conn.close()
     with open("OUT.json","w") as f:
