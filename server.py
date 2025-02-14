@@ -69,7 +69,28 @@ mapings = {
     "Tornado Watch":               "watch.TORNADO",
     "SEVERE THUNDERSTORM WARNING": "warns.TSTORM",
     "SEVERE THUNDERSTORM WATCH":   "watch.TSTORM",
-    "Snowfall Warning": "warns.SNOW"
+    "Snowfall Warning": "warns.SNOW",
+    "extreme cold" : "warns.COLD"
+}
+iconBindings = {
+    "1":"clear",
+    "2":"partcloud",
+    "3":"partcloud",
+    "4":"cloudy",
+    "5":"partcloud",
+    "6":"clear",
+    "7":"raining",
+    "8":"snowrain",
+    "9":"snowing",
+    "10":"thunderstorm",
+    "11":"cloudy",
+    "12":"raining",
+    "13":"raining",
+    "14":"hail",
+    "15":"snowing",
+    "16":"snowing",
+    "17":"snowing",
+    "18":"snowing",
 }
 alertsMap = {}
 
@@ -87,7 +108,8 @@ def update():
     weather = {
         "alerts" :[
         ],
-        "cond":{}
+        "cond":{},
+        "icon_code":None
     }
     try:
         print("up")
@@ -104,6 +126,8 @@ def update():
                 })
     for c in conditionTypes:
         weather["cond"][c] = ec_en.conditions[c]["value"]
+    weather["cond"]["ECicon_code"] = ec_en.conditions["icon_code"]["value"]
+    weather["cond"]["icon_code"] = iconBindings.get(weather["cond"]["ECicon_code"],"err")
     return weather
 
 route = [[51.1435, -114.257], [51.1441, -114.2583], [51.1451, -114.2606],[51.1463, -114.2639]]
@@ -139,6 +163,7 @@ def top_alert():
             "title":"test",
             "class":"warnings"
         })
+    
     
 @app.route("/api/geojson/<name>")
 def geo(name):
