@@ -278,6 +278,7 @@ def merge(alerts):
     for a in alerts:
         for A in a["areas"]:
             areas.append(A)
+    print(areas)
     return mg.merge_polygons_by_warn({
         "type": "FeatureCollection",
         "features": areas
