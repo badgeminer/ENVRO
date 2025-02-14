@@ -1,14 +1,32 @@
-import asyncio
+import asyncio,ansi2html
 import sched,struct
 import threading
-import time
+import time,merge,logging,collections
 
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
-from flask import Flask, json, jsonify, render_template, request,Response
+from flask import Flask, json, jsonify, render_template, request,Response,send_from_directory,redirect,send_file,url_for
 from flask_cors import CORS, cross_origin
 
-import dataPack
+import dataPack,pcap
+logging.basicConfig(level=logging.DEBUG)
+
+
+class ListHandler(logging.Handler):
+    def __init__(self, log_list):
+        super().__init__()
+        self.log_list = log_list
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.log_list.append(log_entry)
+log_messages = collections.deque(maxlen= 500)
+list_handler = ListHandler(log_messages)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+list_handler.setFormatter(formatter)
+
+logging.getLogger().addHandler(list_handler)
+pcap.setup()
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
@@ -53,13 +71,34 @@ mapings = {
     "Tornado Watch":               "watch.TORNADO",
     "SEVERE THUNDERSTORM WARNING": "warns.TSTORM",
     "SEVERE THUNDERSTORM WATCH":   "watch.TSTORM",
-    "Snowfall Warning": "warns.SNOW"
+    "Snowfall Warning": "warns.SNOW",
+    "extreme cold" : "warns.COLD"
+}
+iconBindings = {
+    "1":"clear",
+    "2":"partcloud",
+    "3":"partcloud",
+    "4":"cloudy",
+    "5":"partcloud",
+    "6":"clear",
+    "7":"raining",
+    "8":"snowrain",
+    "9":"snowing",
+    "10":"thunderstorm",
+    "11":"cloudy",
+    "12":"raining",
+    "13":"raining",
+    "14":"hail",
+    "15":"snowing",
+    "16":"snowing",
+    "17":"snowing",
+    "18":"snowing",
 }
 alertsMap = {}
 
 async def alertMap():
     global alertsMap
-    alertsMap = dataPack.extract()
+    alertsMap = pcap.fetch()
     
 @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
 def getMap():
@@ -71,7 +110,8 @@ def update():
     weather = {
         "alerts" :[
         ],
-        "cond":{}
+        "cond":{},
+        "icon_code":None
     }
     try:
         print("up")
@@ -88,6 +128,8 @@ def update():
                 })
     for c in conditionTypes:
         weather["cond"][c] = ec_en.conditions[c]["value"]
+    weather["cond"]["ECicon_code"] = ec_en.conditions["icon_code"]["value"]
+    weather["cond"]["icon_code"] = iconBindings.get(weather["cond"]["ECicon_code"],"err")
     return weather
 
 route = [[51.1435, -114.257], [51.1441, -114.2583], [51.1451, -114.2606],[51.1463, -114.2639]]
@@ -113,8 +155,7 @@ def routes():
 def alerts():
     global weather
     weather = update()
-    return json.dumps(
-        weather)
+    return jsonify(weather["alerts"])
 @app.route("/api/alerts/top")
 def top_alert():
     if len(weather["alerts"]):
@@ -125,22 +166,32 @@ def top_alert():
             "class":"warnings"
         })
     
+    
 @app.route("/api/geojson/<name>")
 def geo(name):
     return json.dumps(getMap()[name])
 
 @app.route("/api/geojson")
 def geokeys():
-    return json.dumps(tuple(getMap().keys()))
+    return json.dumps(tuple(getMap()))
 
 @app.route("/api/geojson/merged")
 def geomerged():
-    return jsonify(dataPack.merge(getMap()))
+    return jsonify(pcap.merge(getMap()))
 
 @app.route("/api/conditions")
 def conditions():
     return jsonify(weather["cond"])
 
+@app.route("/log")
+def outLog():
+    def streamLog():
+        conv = ansi2html.Ansi2HTMLConverter()
+        m = ""
+        for i in log_messages:
+            m += f"{conv.convert(i)}<br>"
+        return f"{m}<br>END OF LOG"
+    return streamLog()
 
 def utf8_integer_to_unicode(n):
     #s= hex(n)
@@ -153,32 +204,26 @@ def utf8_integer_to_unicode(n):
 def conditionsbft():
     print(b'')
     for i,b in enumerate(windLevels):
-        if b["max"] >weather["cond"]["wind_speed"]+0.1:
+        if b["max"] > weather["cond"].get("wind_speed",0)+0.1:
             return jsonify({"scale":i,"icon":chr(0xe3af+i)})
 
 @app.route("/api/tso")
 def tso():
     pass
 
-@app.route('/')
-def render_main():
-    return render_template('alerts.html',alrt =True,data=False,forc=False,map=False,abs=False)
-@app.route('/data')
-def render_data():
-    return render_template('data.html',alrt =False,data=True,forc=False,map=False,abs=False)
 
-@app.route('/forcast')
-def render_forcast():
-    return render_template('forcast.html',alrt =False,data=False,forc=True,map=False,abs=False)
-@app.route('/map')
-def maps():
-    return render_template('map.html',alrt =False,data=False,forc=False,map=True,abs=False)
 @app.route('/bar')
 def bar():
     return render_template('bar.html')
-@app.route('/main')
+
+@app.route('/')
 def main():
-    return render_template('main.html')
+    return send_from_directory("static/my-app/dist/","index.html")
+
+@app.route('/assets/<path:key>')
+def assets(key):
+    return send_from_directory("static/my-app/dist/assets/",key)
+
 
 if __name__ == '__main__':
   app.run(host="0.0.0.0")

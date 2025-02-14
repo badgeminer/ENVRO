@@ -1,3 +1,29 @@
+@import "node_modules/ol/ol.css";
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Spacemono', monospace;
+}
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+.locPing {
+  opacity: 5%;
+  position: absolute;
+  bottom: 5px;
+}
+.locPing:hover {
+  opacity: 100%;
+  
+}
+.layers {
+  bottom: unset;
+  top: 5px;
+  right: 5px;
+}
 @font-face {
   font-family: 'NerdSpace';
   src: URL('/static/SpaceMonoNerdFont-Regular.ttf') format('truetype');
@@ -233,7 +259,7 @@ html {
 
 
 .warnPane {
-  width: 37px;
+  width: 58px;
   height: 58px;
   background-size: 200%;
   transition: .5s ease-out;
@@ -258,4 +284,47 @@ iframe {
 }
 #map {
   /*filter: invert(100%) hue-rotate(180deg) */
+}
+.ol-popup {
+  position: absolute;
+  background-color: white;
+  color:#0f0f0f;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 380px;
+  font-size: 12px;
+}
+.ol-popup:after, .ol-popup:before {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.ol-popup:after {
+  border-top-color: white;
+  border-width: 10px;
+  left: 48px;
+  margin-left: -10px;
+}
+.ol-popup:before {
+  border-top-color: #cccccc;
+  border-width: 11px;
+  left: 48px;
+  margin-left: -11px;
+}
+.ol-popup-closer {
+  text-decoration: none;
+  position: absolute;
+  top: 2px;
+  right: 8px;
+}
+.ol-popup-closer:after {
+  content: "✖";
 }

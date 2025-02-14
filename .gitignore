@@ -3,5 +3,5 @@ map/my-app/dist
 static/node_modules
 static/ol
 chk/
-static/my-app/dist
-static/my-app/node_modules
+cap/
+__pycache__/
