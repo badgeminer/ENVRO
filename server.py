@@ -1,5 +1,6 @@
 import asyncio,ansi2html
 import sched,struct
+import ansi2html.style
 import threading,pika
 import time,merge,logging,collections
 
@@ -11,7 +12,24 @@ from flask_cors import CORS, cross_origin
 import dataPack,pcap
 logging.basicConfig(level=logging.DEBUG)
 
-
+ansi2html.style.SCHEME["ansi2html"] = (
+        "#555555",
+        "#aa0000",
+        "#00aa00",
+        "#aa5500",
+        "#0000aa",
+        "#E850A8",
+        "#00aaaa",
+        "#F5F1DE",
+        "#7f7f7f",
+        "#ff0000",
+        "#00ff00",
+        "#ffff00",
+        "#5c5cff",
+        "#ff00ff",
+        "#00ffff",
+        "#ffffff",
+    )
 class ListHandler(logging.Handler):
     def __init__(self, log_list):
         super().__init__()
