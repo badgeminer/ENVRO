@@ -80,14 +80,14 @@ def parse_cap(content: str) -> dict:
         # Effective time is optional
         effective_element = root.find('cap:info/cap:effective', ns)
         effective_time = (
-            datetime.datetime.fromisoformat(effective_element.text).replace(tzinfo=None)
+            datetime.datetime.fromisoformat(effective_element.text).replace(tzinfo=datetime.timezone.utc)
             if effective_element is not None
             else None
         )
 
         # Expiry time
-        expires_time = datetime.datetime.fromisoformat(expires).replace(tzinfo=None)
-        current_time = datetime.datetime.utcnow()
+        expires_time = datetime.datetime.fromisoformat(expires).replace(tzinfo=datetime.timezone.utc)
+        current_time = datetime.datetime.now(datetime.timezone.utc)
         
         # Extract the alert identifier and references
         identifier = root.find('cap:identifier', ns).text
@@ -235,8 +235,6 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
                     # Otherwise, replace the old alert with the new one
                     alerts_in_effect[alert_id] = alert
             else:
-                if alert["urgency"] == "Future":
-                    continue
                 # Add the new alert if it's not already tracked
                 alerts_in_effect[alert_id] = alert
     with open("OUT.json","w") as f:
