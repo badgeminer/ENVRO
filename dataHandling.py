@@ -3,7 +3,7 @@ import datetime
 import json
 import logging
 import re
-import sqlite3,connLog
+import sqlite3,connLog,coloredlogs
 import merge as mg
 import xml.etree.ElementTree as ET
 
@@ -21,7 +21,7 @@ def DataHandler():
     connection = pika.BlockingConnection(testSrv)
     channel = connection.channel()
     chnd = connLog.ConnHandler(channel)
-    formatter = logging.Formatter('DH - %(asctime)s - %(levelname)s - %(message)s')
+    formatter = coloredlogs.ColoredFormatter('DH - %(asctime)s - %(levelname)s - %(message)s')
     chnd.setFormatter(formatter)
     chnd.setLevel(logging.INFO)
     logger.addHandler(chnd)

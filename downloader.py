@@ -1,4 +1,4 @@
-import env_canada,asyncio,requests,datetime,pika,sqlite3,logging,connLog,json,time
+import env_canada,asyncio,requests,datetime,pika,sqlite3,logging,connLog,json,time,coloredlogs
 from bs4 import BeautifulSoup
 lookback = 24
 
@@ -8,7 +8,7 @@ testSrv = pika.URLParameters("amqp://enviro:enviro@10.0.0.41")
 connection = pika.BlockingConnection(testSrv)
 channel = connection.channel()
 chnd = connLog.ConnHandler(channel)
-formatter = logging.Formatter('DL - %(asctime)s - %(levelname)s - %(message)s')
+formatter = coloredlogs.ColoredFormatter('DL - %(asctime)s - %(levelname)s - %(message)s')
 chnd.setFormatter(formatter)
 logger.addHandler(chnd)
 console_handler = logging.StreamHandler()
