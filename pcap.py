@@ -117,7 +117,9 @@ def parse_cap(content: str) -> dict:
         
         # Check if the alert is in effect
         if current_time >= expires_time:
-            logging.debug("Expired")
+            logging.debug(f"Expired")
+        elif effective_time <= current_time:
+            logging.debug(f"Upcomming")
         elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
                 "status": status,
@@ -237,7 +239,6 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
 def cache(sql:sqlite3.Cursor,url):
     sql.execute("SELECT EXISTS(SELECT 1 FROM Alerts WHERE id=?)",(url,))
     fth =  sql.fetchone()
-    print(fth)
     if not fth[0]:
         logging.info(url)
         R = requests.get(url)
