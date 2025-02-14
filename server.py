@@ -23,7 +23,7 @@ list_handler = ListHandler(log_messages)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 list_handler.setFormatter(formatter)
 
-logging.getLogger().addHandler()
+logging.getLogger().addHandler(list_handler)
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
