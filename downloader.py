@@ -38,6 +38,7 @@ def get_url_paths(url, ext='', params={}):
     return parent
 
 def cache(sql:sqlite3.Cursor,url):
+    global newCapDownloaded
     sql.execute("SELECT EXISTS(SELECT 1 FROM Alerts WHERE id=?)",(url,))
     fth =  sql.fetchone()
     if not fth[0]:
