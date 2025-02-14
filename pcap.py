@@ -16,8 +16,8 @@ lookback = 24
 
 def setup():
     c = sqlite3.connect("alert.db")
-    c.execute("CREATE TABLE `Alerts` (`key` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, `id` TEXT UNIQUE, `data` TEXT)")
-    c.execute("CREATE TABLE `formattedAlert` (`id` TEXT PRIMARY KEY UNIQUE, `begins` TEXT, `ends` TEXT, `areas` TEXT, `urgency` TEXT, `references` TEXT, `msgType` TEXT, `type` TEXT)")
+    c.execute("CREATE TABLE if not exists  `Alerts` (`key` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, `id` TEXT UNIQUE, `data` TEXT)")
+    c.execute("CREATE TABLE if not exists  `formattedAlert` (`id` TEXT PRIMARY KEY UNIQUE, `begins` TEXT, `ends` TEXT, `areas` TEXT, `urgency` TEXT, `references` TEXT, `msgType` TEXT, `type` TEXT)")
     c.close()
     logging.info("PCAP setup")
 
