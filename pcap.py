@@ -118,8 +118,10 @@ def parse_cap(content: str) -> dict:
         # Check if the alert is in effect
         if current_time >= expires_time:
             logging.debug(f"Expired")
+            return
         elif effective_time <= current_time:
             logging.debug(f"Upcomming")
+            return
         elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
                 "status": status,
