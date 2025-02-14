@@ -1,6 +1,6 @@
 import asyncio,ansi2html
 import sched,struct
-import threading
+import threading,pika
 import time,merge,logging,collections
 
 from cachetools import TTLCache, cached
@@ -96,12 +96,42 @@ iconBindings = {
 }
 alertsMap = {}
 
+RABBITMQ_HOST = pika.URLParameters("amqp://enviro:enviro@10.0.0.41")
+
+messages = []  # Store received messages in a list for demonstration
+merged = {}
+
+def callback_log(ch, method, properties, body):
+    """Handle incoming RabbitMQ messages."""
+    message = body.decode()
+    list_handler.log_list.append(message)  # Store the message
+    
+def callback_merged(ch, method, properties, body):
+    global merged
+    """Handle incoming RabbitMQ messages."""
+    message = body.decode()
+    merged = json.loads(message)
+    
+
+def consume_messages():
+    """Start consuming messages from RabbitMQ."""
+    connection = pika.BlockingConnection(RABBITMQ_HOST)
+    channel = connection.channel()
+
+    channel.basic_consume(queue="log", on_message_callback=callback_log, auto_ack=True)
+    channel.basic_consume(queue="merged", on_message_callback=callback_merged, auto_ack=True)
+
+    print("Waiting for messages...")
+    channel.start_consuming()  # Blocking call
+
 async def alertMap():
     global alertsMap
     alertsMap = pcap.fetch()
     
 @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+
 def getMap():
+    logging.warning("DEPERICATED")
     asyncio.run(alertMap())
     return alertsMap
 
@@ -177,7 +207,7 @@ def geokeys():
 
 @app.route("/api/geojson/merged")
 def geomerged():
-    return jsonify(pcap.merge(getMap()))
+    return jsonify(merged)
 
 @app.route("/api/conditions")
 def conditions():
@@ -226,4 +256,5 @@ def assets(key):
 
 
 if __name__ == '__main__':
+  threading.Thread(target=consume_messages, daemon=True).start()
   app.run(host="0.0.0.0")
