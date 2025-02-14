@@ -1,7 +1,7 @@
 import pika
 
 # Connection parameters
-amqp_url = "amqps://anonymous:anonymous@dd.weather.gc.ca"
+amqp_url = "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca"
 exchange = "q_anonymous.sr_subscribe.cap-xml_conf.flare_envirotron"
 routing_key = "*.WXO-DD.alerts.cap.#"  # Adjust this to subscribe to specific data
 

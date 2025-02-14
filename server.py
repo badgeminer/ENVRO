@@ -158,9 +158,11 @@ def conditions():
 
 @app.route("/log")
 def outLog():
-    for i in log_messages:
-        yield f"{i}<br>"
-    return "END OF LOG"
+    def streamLog():
+        for i in log_messages:
+            yield f"{i}<br>"
+        return "END OF LOG"
+    return streamLog()
 
 def utf8_integer_to_unicode(n):
     #s= hex(n)
