@@ -160,9 +160,10 @@ def conditions():
 def outLog():
     def streamLog():
         conv = ansi2html.Ansi2HTMLConverter()
+        m = ""
         for i in log_messages:
-            yield f"{conv.convert(i)}<br>"
-        return "END OF LOG"
+            m += f"{conv.convert(i)}<br>"
+        return f"{m}<br>END OF LOG"
     return streamLog()
 
 def utf8_integer_to_unicode(n):
