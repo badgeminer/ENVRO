@@ -80,11 +80,12 @@ def fetch():
                     "data":"..."
                 }),pika.BasicProperties(content_type='text/json',
                                            delivery_mode=pika.DeliveryMode.Transient))
-
-try:
-    while True:
-        fetch()
-        time.sleep(60*5)
-except:
-    logger.warning("DL offline")
-    connection.close()
+def downloader():
+    try:
+        while True:
+            logger.info("downloading")
+            fetch()
+            time.sleep(60*5)
+    except:
+        logger.warning("DL offline")
+        connection.close()

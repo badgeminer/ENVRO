@@ -219,7 +219,7 @@ def outLog():
         conv = ansi2html.Ansi2HTMLConverter()
         m = ""
         for i in log_messages:
-            m += f"{conv.convert(i)}<br>"
+            m += f"{conv.convert(i)}"
         return f"{m}<br>END OF LOG"
     return streamLog()
 
