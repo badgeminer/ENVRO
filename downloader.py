@@ -95,6 +95,8 @@ def downloader():
                 
                 channel.basic_publish("","hb","HEARTBEAT")
                 channel.basic_get("hb",True)
-    except:
+    except BaseException as e:
+        if not isinstance(e,KeyboardInterrupt):
+            logger.critical(f"{type(e)} {e}")
         logger.warning("DL offline")
         connection.close()
