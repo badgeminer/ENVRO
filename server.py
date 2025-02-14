@@ -1,4 +1,4 @@
-import asyncio
+import asyncio,ansi2html
 import sched,struct
 import threading
 import time,merge,logging,collections
@@ -159,8 +159,9 @@ def conditions():
 @app.route("/log")
 def outLog():
     def streamLog():
+        conv = ansi2html.Ansi2HTMLConverter()
         for i in log_messages:
-            yield f"{i}<br>"
+            yield f"{conv.convert(i)}<br>"
         return "END OF LOG"
     return streamLog()
 
