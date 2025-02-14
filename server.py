@@ -9,7 +9,7 @@ from flask import Flask, json, jsonify, render_template, request,Response,send_f
 from flask_cors import CORS, cross_origin
 
 import dataPack,pcap
-
+logging.basicConfig(level=logging.DEBUG)
 class ListHandler(logging.Handler):
     def __init__(self, log_list):
         super().__init__()
@@ -24,7 +24,7 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 list_handler.setFormatter(formatter)
 
 logging.getLogger().addHandler(list_handler)
-logging.basicConfig(level=logging.DEBUG)
+
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
