@@ -114,7 +114,7 @@ iconBindings = {
 }
 alertsMap = {}
 
-RABBITMQ_HOST = pika.URLParameters("amqp://enviro:enviro@10.0.0.41")
+RABBITMQ_HOST = pika.URLParameters("amqp://enviro-server:enviro@10.0.0.41")
 
 messages = []  # Store received messages in a list for demonstration
 merged = {}
