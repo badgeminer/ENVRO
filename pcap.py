@@ -3,6 +3,7 @@ import merge as mg
 from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import orient
 import xml.etree.ElementTree as ET
+from dateutil import parser
 logging.basicConfig(level=logging.INFO)
 
 
@@ -87,13 +88,13 @@ def parse_cap(content: str) -> dict:
         # Effective time is optional
         effective_element = root.find('cap:info/cap:effective', ns)
         effective_time = (
-            datetime.datetime.fromisoformat(effective_element.text).replace(tzinfo=datetime.timezone.utc)
+            parser.isoparse(effective_element.text).replace(tzinfo=datetime.timezone.utc)
             if effective_element is not None
             else None
         )
 
         # Expiry time
-        expires_time = datetime.datetime.fromisoformat(expires).replace(tzinfo=datetime.timezone.utc)
+        expires_time = parser.isoparse(expires).replace(tzinfo=datetime.timezone.utc)
         current_time = datetime.datetime.now(datetime.timezone.utc)
         
         # Extract the alert identifier and references
@@ -124,10 +125,11 @@ def parse_cap(content: str) -> dict:
                     })
         # Check if the alert is in effect
         if current_time >= expires_time:
-            logging.info(f"Expired")
+            logging.info(f"Alert {identifier} expired at {expires_time}, current time: {current_time}")
+
             return
         elif effective_time is not None and effective_time >= current_time:
-            logging.info(f"Upcomming {effective_time-current_time}")
+            logging.info(f"Alert {identifier} is upcoming, starts in {effective_time - current_time}")
             return
         elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
