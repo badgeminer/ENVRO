@@ -85,7 +85,11 @@ def downloader():
         while True:
             logger.info("downloading")
             fetch()
-            time.sleep(60*5)
+            for i in range(10):
+                time.sleep(30)
+                
+                channel.basic_publish("","hb","HEARTBEAT")
+                channel.basic_get("hb",True)
     except:
         logger.warning("DL offline")
         connection.close()
