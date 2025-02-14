@@ -1,7 +1,7 @@
 import pika
 
 # Connection parameters
-amqp_url = "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca"
+amqp_url = "amqps://anonymous:anonymous@dd.weather.gc.ca/"
 exchange = "q_anonymous.sr_subscribe.cap-xml_conf.flare_envirotron"
 routing_key = "*.WXO-DD.alerts.cap.#"  # Adjust this to subscribe to specific data
 
@@ -18,13 +18,13 @@ channel2 = connection2.channel()
 
 
 # Declare exchange (it must match the one used by ECCC)
-channel.exchange_declare(exchange=exchange, exchange_type='topic', durable=True)
+#channel.exchange_declare(exchange="", exchange_type='topic', durable=True)
 
 # Create a temporary queue and bind it to the exchange with the routing key
 result = channel.queue_declare(exchange)#'q_anonymous_flare')
 queue_name = result.method.queue
 print(queue_name)
-channel.queue_bind(queue_name,exchange,routing_key )
+channel.queue_bind(queue_name,"xpublic",routing_key )
 #result2 = channel2.queue_declare('flare')
 
 print(f"Listening for messages on routing key: {routing_key}")
