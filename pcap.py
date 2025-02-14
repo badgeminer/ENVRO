@@ -72,6 +72,7 @@ def parse_cap(content: str) -> dict:
         
         # Extract relevant fields
         status = root.find('cap:status', ns).text  # Example: "Actual"
+        msgType = root.find('cap:msgType', ns).text
         expires = root.find('cap:info/cap:expires', ns).text  # Example: "2024-12-21T12:00:00-00:00"
         response_type = root.find('cap:info/cap:responseType', ns)
         response_type = response_type.text if response_type is not None else None
@@ -132,7 +133,9 @@ def parse_cap(content: str) -> dict:
                 "references": reference_ids,
                 "headline": root.find('cap:info/cap:headline', ns).text,
                 "description": root.find('cap:info/cap:description', ns).text,
-                "areas":areas
+                "areas":areas,
+                "msgType":msgType,
+                "urgency": root.find('cap:urgency', ns).text,
             }
         
     except ET.ParseError as e:
@@ -232,6 +235,8 @@ def get_in_effect_alerts_web(cap: list[str]) -> list:
                     # Otherwise, replace the old alert with the new one
                     alerts_in_effect[alert_id] = alert
             else:
+                if alert["urgency"] == "Future":
+                    continue
                 # Add the new alert if it's not already tracked
                 alerts_in_effect[alert_id] = alert
     with open("OUT.json","w") as f:
