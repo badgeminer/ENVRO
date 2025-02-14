@@ -20,7 +20,7 @@ class ListHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
         self.log_list.append(log_entry)
-log_messages = collections.deque(maxlen= 500)
+log_messages = collections.deque(maxlen= 1000)
 list_handler = ListHandler(log_messages)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 list_handler.setFormatter(formatter)
