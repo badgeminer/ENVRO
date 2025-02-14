@@ -16,6 +16,8 @@ console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
+newCapDownloaded = 0
+
 issu = ("CWNT","CWWG","CWVR")
 
 def setup():
@@ -41,6 +43,7 @@ def cache(sql:sqlite3.Cursor,url):
     if not fth[0]:
         logger.info(url)
         R = requests.get(url)
+        newCapDownloaded+=1
         sql.execute("INSERT or replace INTO Alerts (id,data) VALUES (?,?)",(url,R.text))
         return R.text
     else:
@@ -49,9 +52,10 @@ def cache(sql:sqlite3.Cursor,url):
         return fth[0]
 
 def fetch():
-    global lookback
+    global lookback,newCapDownloaded
     t = datetime.datetime.now(datetime.timezone.utc)
     dat = []
+    newCapDownloaded = 0
     for i in range(lookback,0,-1):
         T = datetime.timedelta(hours=i)
         d = t-T
@@ -80,6 +84,7 @@ def fetch():
                     "data":"..."
                 }),pika.BasicProperties(content_type='text/json',
                                            delivery_mode=pika.DeliveryMode.Transient))
+    logger.info(f"Downloaded {newCapDownloaded} alerts")
 def downloader():
     try:
         while True:
