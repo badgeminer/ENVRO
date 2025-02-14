@@ -1,7 +1,7 @@
 import asyncio
 import sched,struct
 import threading
-import time,merge
+import time,merge,logging,collections
 
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
@@ -9,6 +9,21 @@ from flask import Flask, json, jsonify, render_template, request,Response,send_f
 from flask_cors import CORS, cross_origin
 
 import dataPack,pcap
+
+class ListHandler(logging.Handler):
+    def __init__(self, log_list):
+        super().__init__()
+        self.log_list = log_list
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.log_list.append(log_entry)
+log_messages = collections.deque(maxlen= 500)
+list_handler = ListHandler(log_messages)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+list_handler.setFormatter(formatter)
+
+logging.getLogger().addHandler()
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
@@ -140,6 +155,11 @@ def geomerged():
 def conditions():
     return jsonify(weather["cond"])
 
+@app.route("/log")
+def outLog():
+    for i in log_messages:
+        yield f"{i}<br>"
+    return "END OF LOG"
 
 def utf8_integer_to_unicode(n):
     #s= hex(n)

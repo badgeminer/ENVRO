@@ -8,8 +8,14 @@ routing_key = "*.WXO-DD.alerts.cap.#"  # Adjust this to subscribe to specific da
 # Establish connection
 params = pika.URLParameters(amqp_url)
 
+testSrv = pika.URLParameters("amqp://flare:flare@10.0.0.41")
+
 connection = pika.BlockingConnection(params)
 channel = connection.channel()
+
+connection2 = pika.BlockingConnection(testSrv)
+channel2 = connection2.channel()
+
 
 # Declare exchange (it must match the one used by ECCC)
 channel.exchange_declare(exchange=exchange, exchange_type='topic', durable=True)
@@ -19,12 +25,17 @@ result = channel.queue_declare('q_anonymous_flare')
 queue_name = result.method.queue
 queue_name = ""
 channel.queue_bind(queue_name,exchange,routing_key )
+#result2 = channel2.queue_declare('flare')
 
 print(f"Listening for messages on routing key: {routing_key}")
+channel2.basic_publish("","flare","TEST",pika.BasicProperties(content_type='text/plain',
+                                           delivery_mode=pika.DeliveryMode.Transient))
 
 # Callback function to handle received messages
 def callback(ch, method, properties, body):
     print(f"Received message: {body.decode()}")
+    channel2.basic_publish("","flare",f"{ch} {body.decode()}",pika.BasicProperties(content_type='text/plain',
+                                           delivery_mode=pika.DeliveryMode.Transient))
 
 # Start consuming messages
 channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
@@ -34,3 +45,5 @@ try:
 except KeyboardInterrupt:
     print("Stopping...")
     connection.close()
+    channel2.basic_publish("","flare","Leaving")
+    connection2.close()
