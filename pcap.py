@@ -216,7 +216,7 @@ def get_in_effect_alerts(cap_folder: str) -> list:
     
     return list(alerts_in_effect.values())
 
-def get_in_effect_alerts_web(cur:sqlite3.Cursor, cap: list[str]) -> list:
+def get_in_effect_alerts_web(cap: list[str]) -> list:
     """
     Get all alerts in effect from CAP XML files in a given folder.
 
@@ -227,6 +227,8 @@ def get_in_effect_alerts_web(cur:sqlite3.Cursor, cap: list[str]) -> list:
         list: A list of dictionaries containing "in effect" alerts, with updates handled correctly.
     """
     for dat in cap:
+        conn = sqlite3.connect("alert.db")
+        cur = conn.cursor()
         alert = parse_cap(dat)
         if alert:
             alert_id = alert["identifier"]
@@ -249,6 +251,8 @@ def get_in_effect_alerts_web(cur:sqlite3.Cursor, cap: list[str]) -> list:
             else:
                 # Add the new alert if it's not already tracked
                 alerts_in_effect[alert_id] = alert
+            conn.commit()
+            conn.close()
     with open("OUT.json","w") as f:
         json.dump(list(alerts_in_effect.values()),f)
     return list(alerts_in_effect.values())
@@ -283,11 +287,11 @@ def fetch():
             for r,name in result:
                 R = cache(cur,r)
                 dat.append(R)
-            
+            conn.commit()
+            conn.close()
     lookback = 1
-    d = get_in_effect_alerts_web(cur,dat)
-    conn.commit()
-    conn.close()
+    d = get_in_effect_alerts_web(dat)
+    
     return d
 def merge(alerts):
     areas = []
