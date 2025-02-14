@@ -114,14 +114,13 @@ def parse_cap(content: str) -> dict:
                         },
                         "properties": {"warn":event}
                     })
-        
         # Check if the alert is in effect
         if current_time >= expires_time:
             logging.debug(f"Expired")
             return
-        #elif effective_time is not None and effective_time <= current_time:
-        #    logging.info(f"Upcomming {effective_time-current_time}")
-        #    return
+        elif effective_time is not None and effective_time >= current_time:
+            logging.info(f"Upcomming {effective_time-current_time}")
+            return
         elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
             return {
                 "status": status,
@@ -244,7 +243,7 @@ def cache(sql:sqlite3.Cursor,url):
     if not fth[0]:
         logging.info(url)
         R = requests.get(url)
-        sql.execute("INSERT INTO Alerts (id,data) VALUES (?,?)",(url,R.text))
+        sql.execute("INSERT or replace INTO Alerts (id,data) VALUES (?,?)",(url,R.text))
         return R.text
     else:
         sql.execute("SELECT data FROM Alerts WHERE id=?",(url,))

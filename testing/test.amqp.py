@@ -21,9 +21,9 @@ channel2 = connection2.channel()
 channel.exchange_declare(exchange=exchange, exchange_type='topic', durable=True)
 
 # Create a temporary queue and bind it to the exchange with the routing key
-result = channel.queue_declare('q_anonymous_flare')
+result = channel.queue_declare(exchange)#'q_anonymous_flare')
 queue_name = result.method.queue
-queue_name = ""
+print(queue_name)
 channel.queue_bind(queue_name,exchange,routing_key )
 #result2 = channel2.queue_declare('flare')
 
