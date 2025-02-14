@@ -14,6 +14,13 @@ issu = ("CWNT","CWWG","CWVR")
 alerts_in_effect = {}
 lookback = 24
 
+def setup():
+    c = sqlite3.connect("alert.db")
+    c.execute("CREATE TABLE `Alerts` (`key` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, `id` TEXT UNIQUE, `data` TEXT)")
+    c.execute("CREATE TABLE `formattedAlert` (`id` TEXT PRIMARY KEY UNIQUE, `begins` TEXT, `ends` TEXT, `areas` TEXT, `urgency` TEXT, `references` TEXT, `msgType` TEXT, `type` TEXT)")
+    c.close()
+    logging.info("PCAP setup")
+
 def get_url_paths(url, ext='', params={}):
     response = requests.get(url, params=params)
     if response.ok:
@@ -135,6 +142,7 @@ def parse_cap(content: str) -> dict:
                 "description": root.find('cap:info/cap:description', ns).text,
                 "areas":areas,
                 "msgType":msgType,
+                "type":event,
                 "urgency": root.find('cap:info/cap:urgency', ns).text,
             }
         
