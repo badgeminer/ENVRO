@@ -189,13 +189,13 @@ def get_in_effect_alerts(cap_folder: str) -> list:
                             # Otherwise, replace the old alert with the new one
                             alerts_in_effect[alert_id] = alert
                             for r in alert.get("references"):
-                                alerts_in_effect[r]["expires"] = alert["expires"]
+                                del alerts_in_effect[r]#["expires"] = alert["expires"]
                             logging.debug(f"updated {alert_id}")
                     else:
                         # Add the new alert if it's not already tracked
                         alerts_in_effect[alert_id] = alert
                         for r in alert.get("references"):
-                            alerts_in_effect[r]["expires"] = alert["expires"]
+                            del alerts_in_effect[r]#["expires"] = alert["expires"]
     
     
     return list(alerts_in_effect.values())
