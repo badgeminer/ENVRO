@@ -299,7 +299,8 @@ const warnColors = {
   "waterspout":"#F03500",
   "special marine":"#D06018",
 
-  "tornado":"#FF0000"
+  "tornado":"#FF0000",
+  "air quality":"#CCCCCC"
 
 }
 
