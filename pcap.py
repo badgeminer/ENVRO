@@ -135,7 +135,7 @@ def parse_cap(content: str) -> dict:
                 "description": root.find('cap:info/cap:description', ns).text,
                 "areas":areas,
                 "msgType":msgType,
-                "urgency": root.find('cap:urgency', ns).text,
+                "urgency": root.find('cap:info/cap:urgency', ns).text,
             }
         
     except ET.ParseError as e:
