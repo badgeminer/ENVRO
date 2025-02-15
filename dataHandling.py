@@ -208,11 +208,7 @@ def DataHandler():
                         "type": "FeatureCollection",
                         "features": areas
                     })
-                    areas.extend(merged["features"])
-                    merged = {
-                        "type": "FeatureCollection",
-                        "features": areas
-                    }
+                    
                     logger.info("Merging complete")
                 except BaseException as e:
                     logger.error(f"failed to merge {type(e)} {e}")
