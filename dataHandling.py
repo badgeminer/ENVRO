@@ -185,6 +185,7 @@ def DataHandler():
                         "features": []
                     }
     def callback(ch, method:pika.spec.Basic.Deliver, properties, body):
+        global  alerts_in_effect
         dat =json.loads(body.decode())
         if not schema.is_valid(dat):
             channel.basic_ack(delivery_tag=method.delivery_tag)
@@ -219,6 +220,7 @@ def DataHandler():
                     }
                 channel.basic_publish("","merged",json.dumps(merged),pika.BasicProperties(content_type='text/json',
                                             delivery_mode=pika.DeliveryMode.Transient))
+                alerts_in_effect = {}
                 
                 
                     
