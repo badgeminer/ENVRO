@@ -208,6 +208,10 @@ def DataHandler():
                         "type": "FeatureCollection",
                         "features": areas
                     })
+                    merged = {
+                        "type": "FeatureCollection",
+                        "features": areas.copy().extend(merged["features"])
+                    }
                     logger.info("Merging complete")
                 except BaseException as e:
                     logger.error(f"failed to merge {type(e)} {e}")
@@ -215,10 +219,7 @@ def DataHandler():
                         "type": "FeatureCollection",
                         "features": areas
                     }
-                merged = {
-                        "type": "FeatureCollection",
-                        "features": areas
-                    }
+                
                 channel.basic_publish("","merged",json.dumps(merged),pika.BasicProperties(content_type='text/json',
                                             delivery_mode=pika.DeliveryMode.Transient))
                 alerts_in_effect = {}
