@@ -13,6 +13,8 @@ from dateutil import parser
 from schema import And, Optional, Schema, SchemaError, Use
 from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import orient
+
+alerts_in_effect = {}
 def DataHandler():
     logger = logging.Logger("DH")
 
@@ -35,7 +37,6 @@ def DataHandler():
                 "data": And(str, len),
         }
     )
-    alerts_in_effect = {}
 
     def extract_urns(data: str):
         """
