@@ -158,6 +158,7 @@ const weatherTypes = {
   clear:"󰖙",
   tornado:"󰼸",
   windy:"󰖝",
+  snowwind:"󰜗󰖝",
   thunderstorm:"󰙾",
   partlyCloudy:"󰖕",
   snowrain:"󰙿",
