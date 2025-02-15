@@ -90,7 +90,7 @@ mapings = {
     "SEVERE THUNDERSTORM WARNING": "warns.TSTORM",
     "SEVERE THUNDERSTORM WATCH":   "watch.TSTORM",
     "Snowfall Warning": "warns.SNOW",
-    "extreme cold" : "warns.COLD"
+    "Extreme Cold" : "warns.COLD"
 }
 iconBindings = {
     "01":"clear",
