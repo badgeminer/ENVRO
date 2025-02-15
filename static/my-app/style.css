@@ -230,18 +230,8 @@ html {
 
 
 
-.warnPane[type="warnings"] {
-  background: linear-gradient(to left,red 50%, var(--prev) 50%) right;
-  background-size: 200%;
-  background-position: var(--side);
-}
-.warnPane[type="watches"] {
-  /*background-color: yellow;*/
-  background: linear-gradient(to left,yellow 50%, var(--prev) 50%) right;
-  background-size: 200%;
-  color: #333;
-  background-position: var(--side);
-}
+
+
 .warnPane[type="NONE"] {
   /*background-color: yellow;*/
   background: linear-gradient(to left,#333 50%, var(--prev) 50%) right;
@@ -263,7 +253,10 @@ html {
   height: 30px;
   background-size: 200%;
   transition: .5s ease-out;
-
+  background: linear-gradient(to left,var(--cur) 50%, var(--prev) 50%) right;
+  background-size: 200%;
+  background-position: var(--side);
+  color: var(--col);
 }
 
 .padtop {

@@ -124,6 +124,7 @@ var alerts= {
         "symbols": ' ',
         "text":"TEST",
         "class":"test",
+        "color":"#FFFFFF"
     }
 }
 for (const key in warns) {
@@ -133,7 +134,8 @@ for (const key in warns) {
         "class":"warnings",
         "bg":"red",
         "symbols": element,
-        "text":key
+        "text":key,
+        "color":"#FFFFFF"
     }
 }
 for (const key in watch) {
@@ -143,7 +145,8 @@ for (const key in watch) {
         "class":"watches",
         "bg":"yellow",
         "symbols": element,
-        "text":key
+        "text":key,
+        "color":"#333"
     }
 }
 
@@ -190,6 +193,7 @@ function setAlert(alert) {
         top_alert.setAttribute("type","NONE")
         top_alert.style.setProperty("--prev",prev.bg)
         top_alert.style.setProperty("--cur",alertData.bg)
+        top_alert.style.setProperty("--col","#FFFFFF")
         alertIcon.innerText = ""
         alertType.innerText = ""
     } else {
@@ -197,9 +201,10 @@ function setAlert(alert) {
         //top_alert.style.background = "linear-gradient(to left, yellow 50%, red 50%) right"
         
         
-        top_alert.setAttribute("type",alertData.class)
+        top_alert.setAttribute("type","")
         top_alert.style.setProperty("--prev",prev.bg)
         top_alert.style.setProperty("--cur",alertData.bg)
+        top_alert.style.setProperty("--col",alertData.color)
 
         //top_alert.class = `${alertData.class} twoLineData`
         //top_alert.classList[0] = alertData.class
