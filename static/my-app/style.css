@@ -204,7 +204,7 @@ html {
   float:left;
   color: #f2f2f2;
   text-align: center;
-  padding: 7px 16px;
+  padding: 14px 16px;
   text-decoration: none;
   font-size: 17px;
   margin:0;
@@ -259,8 +259,8 @@ html {
 
 
 .warnPane {
-  width: 58px;
-  height: 58px;
+  width: 130px;
+  height: 30px;
   background-size: 200%;
   transition: .5s ease-out;
 
