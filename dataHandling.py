@@ -117,6 +117,12 @@ def DataHandler():
                             },
                             "properties": {"warn":event}
                         })
+                        
+            #FIXME temp
+            areas = mg.merge_polygons_by_warn({
+                        "type": "FeatureCollection",
+                        "features": areas
+            })["features"]
             # Check if the alert is in effect
             if current_time >= expires_time:
                 logger.info(f"Alert {identifier} expired at {expires_time}, current time: {current_time}")
