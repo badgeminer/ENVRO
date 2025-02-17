@@ -44,6 +44,7 @@ class ListHandler(logging.Handler):
 
 
 log_messages = collections.deque(maxlen= 1000)
+net_log_messages = collections.deque(maxlen= 1000)
 list_handler = ListHandler(log_messages)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 list_handler.setFormatter(formatter)
@@ -136,7 +137,10 @@ merged = {}
 def callback_log(ch, method, properties, body):
     """Handle incoming RabbitMQ messages."""
     message = body.decode()
+    logSync.acquire()
     list_handler.log_list.append(message)  # Store the message
+    net_log_messages.append(message)
+    logSync.release()
     
 def callback_merged(ch, method, properties, body):
     global merged
@@ -239,6 +243,21 @@ def outLog():
         logSync.acquire()
         for i in log_messages:
             m += f"{conv.convert(i)}"
+        logSync.release()
+        return m
+        
+    return streamLog()
+
+@app.route("/log/net")
+def outNetLog():
+    def streamLog():
+        conv = ansi2html.Ansi2HTMLConverter()
+        m = ""
+        logSync.acquire()
+        for i in net_log_messages:
+            M = f"{conv.convert(i)}"
+            m += M
+            yield m
         logSync.release()
         return m
         
