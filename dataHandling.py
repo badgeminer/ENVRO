@@ -207,7 +207,7 @@ def DataHandler():
                 areas = []
                 
                 for k,a in alerts_in_effect.items():
-                    logger.debug(k)
+                    logger.debug(f"{k} type={a["type"]}")
                     for A in a["areas"]:
                         areas.append(A)
                 try:
