@@ -119,11 +119,11 @@ def DataHandler():
                         })
             # Check if the alert is in effect
             if current_time >= expires_time:
-                logging.info(f"Alert {identifier} expired at {expires_time}, current time: {current_time}")
+                logger.info(f"Alert {identifier} expired at {expires_time}, current time: {current_time}")
 
                 return
             elif effective_time is not None and effective_time >= current_time:
-                logging.info(f"Alert {identifier} is upcoming, starts in {effective_time - current_time}")
+                logger.info(f"Alert {identifier} is upcoming, starts in {effective_time - current_time}")
                 return
             elif status == "Actual":# and (effective_time is None or effective_time <= current_time) and current_time <= expires_time:
                 return {
@@ -207,7 +207,7 @@ def DataHandler():
                 areas = []
                 
                 for k,a in alerts_in_effect.items():
-                    logger.debug(f"{k} type={a['type']}")
+                    logger.debug(f"{k} type={a['type']} responseType={a['responseType']} urgency={a['urgency']}")
                     for A in a["areas"]:
                         areas.append(A)
                 try:
