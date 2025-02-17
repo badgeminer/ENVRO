@@ -229,6 +229,10 @@ def DataHandler():
                         "type": "FeatureCollection",
                         "features": areas
                     }
+                merged = {
+                        "type": "FeatureCollection",
+                        "features": areas
+                    }
                 
                 channel.basic_publish("","merged",json.dumps(merged),pika.BasicProperties(content_type='text/json',
                                             delivery_mode=pika.DeliveryMode.Transient))
