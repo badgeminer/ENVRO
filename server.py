@@ -255,9 +255,7 @@ def outNetLog():
         m = ""
         logSync.acquire()
         for i in net_log_messages:
-            M = f"{conv.convert(i)}"
-            m += M
-            yield m
+            m += f"{conv.convert(i)}"
         logSync.release()
         return m
         
