@@ -210,7 +210,7 @@ def DataHandler():
             if current_time >= expires_time:
                 logger.info(f"Alert {k} expired at {expires_time}, current time: {current_time}")
                 deleteAlerts.append(k)
-        for d in k:
+        for d in deleteAlerts:
             del alerts_in_effect[d]
             
     def merge():
