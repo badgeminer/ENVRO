@@ -311,7 +311,7 @@ wspout_stripes.addColorStop(1, 'orange');
 
 const warnColors = {
   "snowfall":"#00ffff",
-  "blowing snow":"#008fbb",
+  "blowing snow advisory":"#008fbb",
   
   "winter storm":"#67c9bc",
   "blizzard":"#3f92d1",
