@@ -115,7 +115,7 @@ def DataHandler():
                                 "type": "Polygon",
                                 "coordinates": [list(polygon.exterior.coords)]
                             },
-                            "properties": {"warn":event}
+                            "properties": {"warn":event,"id":identifier}
                         })
                         
             #FIXME temp
