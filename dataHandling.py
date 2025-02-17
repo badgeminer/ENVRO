@@ -147,6 +147,8 @@ def DataHandler():
                     "type":event,
                     "urgency": root.find('cap:info/cap:urgency', ns).text,
                 }
+            else:
+                logger.warning(f"{status} {identifier}")
             
         except ET.ParseError as e:
             logging.error(f"XML parsing error in: {e}")
