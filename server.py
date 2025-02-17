@@ -30,6 +30,7 @@ ansi2html.style.SCHEME["ansi2html"] = (
         "#00ffff",
         "#ffffff",
     )
+logSync = threading.Lock()
 class ListHandler(logging.Handler):
     def __init__(self, log_list):
         super().__init__()
@@ -37,7 +38,11 @@ class ListHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = self.format(record)
+        logSync.acquire()
         self.log_list.append(log_entry)
+        logSync.release()
+
+
 log_messages = collections.deque(maxlen= 1000)
 list_handler = ListHandler(log_messages)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -231,9 +236,12 @@ def outLog():
     def streamLog():
         conv = ansi2html.Ansi2HTMLConverter()
         m = ""
+        logSync.acquire()
         for i in log_messages:
             m += f"{conv.convert(i)}"
+        logSync.release()
         return m
+        
     return streamLog()
 
 def utf8_integer_to_unicode(n):
