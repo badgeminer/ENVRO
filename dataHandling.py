@@ -179,7 +179,7 @@ def DataHandler():
                 for r in alert.get("references"):
                     if r in alerts_in_effect:
                         logger.info(f"should be removing {r}")
-                        #del alerts_in_effect[r]
+                        del alerts_in_effect[r]
         else:
             logger.debug("bad alert")
         conn.commit()
@@ -205,7 +205,9 @@ def DataHandler():
             case "merge":
                 logger.info("Merging...")
                 areas = []
+                
                 for k,a in alerts_in_effect.items():
+                    logger.debug(k)
                     for A in a["areas"]:
                         areas.append(A)
                 try:
