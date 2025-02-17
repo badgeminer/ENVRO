@@ -201,6 +201,50 @@ def DataHandler():
                         "type": "FeatureCollection",
                         "features": []
                     }
+    
+    def cleanup():
+        deleteAlerts = []
+        current_time = datetime.datetime.now(datetime.timezone.utc)
+        for k,v in alerts_in_effect.items():
+            expires_time = parser.isoparse(v['expires']).replace(tzinfo=datetime.timezone.utc)
+            if current_time >= expires_time:
+                logger.info(f"Alert {k} expired at {expires_time}, current time: {current_time}")
+                deleteAlerts.append(k)
+        for d in k:
+            del alerts_in_effect[d]
+            
+    def merge():
+        logger.info("Merging...")
+        areas = []
+        
+        cleanup()
+        
+        for k,a in alerts_in_effect.items():
+            logger.debug(f"{k} type={a['type']} responseType={a['responseType']} urgency={a['urgency']}")
+            for A in a["areas"]:
+                areas.append(A)
+        try:
+            merged = mg.merge_polygons_by_warn({
+                "type": "FeatureCollection",
+                "features": areas
+            })
+            
+            logger.info("Merging complete")
+        except BaseException as e:
+            logger.error(f"failed to merge {type(e)} {e}")
+            merged = {
+                "type": "FeatureCollection",
+                "features": areas
+            }
+        merged = {
+                "type": "FeatureCollection",
+                "features": areas
+            }
+        
+        channel.basic_publish("","merged",json.dumps(merged),pika.BasicProperties(content_type='text/json',
+                                    delivery_mode=pika.DeliveryMode.Transient))
+        #alerts_in_effect = {}
+    
     def callback(ch, method:pika.spec.Basic.Deliver, properties, body):
         global  alerts_in_effect
         dat =json.loads(body.decode())
@@ -213,35 +257,9 @@ def DataHandler():
         match d["typ"]:
             case "dat":
                 parseAlert(d["data"])
+                merge()
             case "merge":
-                logger.info("Merging...")
-                areas = []
-                
-                for k,a in alerts_in_effect.items():
-                    logger.debug(f"{k} type={a['type']} responseType={a['responseType']} urgency={a['urgency']}")
-                    for A in a["areas"]:
-                        areas.append(A)
-                try:
-                    merged = mg.merge_polygons_by_warn({
-                        "type": "FeatureCollection",
-                        "features": areas
-                    })
-                    
-                    logger.info("Merging complete")
-                except BaseException as e:
-                    logger.error(f"failed to merge {type(e)} {e}")
-                    merged = {
-                        "type": "FeatureCollection",
-                        "features": areas
-                    }
-                merged = {
-                        "type": "FeatureCollection",
-                        "features": areas
-                    }
-                
-                channel.basic_publish("","merged",json.dumps(merged),pika.BasicProperties(content_type='text/json',
-                                            delivery_mode=pika.DeliveryMode.Transient))
-                alerts_in_effect = {}
+                merge()
                 
                 
                     
