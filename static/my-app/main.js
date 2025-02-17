@@ -13,7 +13,7 @@ import VectorImageLayer from 'ol/layer/VectorImage.js';
 //import VectorLayer from 'ol/layer/Vector.js';
 import VectorSource from 'ol/source/Vector.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
-import Fill from 'ol/style/Fill.js';
+import Fill from 'ol/style/Fill.js'; //TODO REMOVE ME
 
 const pixelRatio = DEVICE_PIXEL_RATIO;
 
@@ -105,6 +105,8 @@ var watch = {
     "TSTORM":"󰼯 ",
     "TORNADO":"󰼯 󰼸",
 }
+
+//TODO REMOVE ME
 var prioritys = [
     "warns.TORNADO",
     "watch.TORNADO",
@@ -294,7 +296,7 @@ const vectorLayer = new VectorImageLayer({
   }
 });
 
-
+//TODO REMOVE ME
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
 const wspout_stripes = context.createLinearGradient(0, 0, 1024 * pixelRatio, 0);
@@ -305,6 +307,8 @@ wspout_stripes.addColorStop(3 / 6, '#00000000');
 wspout_stripes.addColorStop(4 / 6, 'orange');
 wspout_stripes.addColorStop(5 / 6, '#00000000');
 wspout_stripes.addColorStop(1, 'orange');
+
+
 const warnColors = {
   "snowfall":"#00ffff",
   "blowing snow":"#008fbb",
