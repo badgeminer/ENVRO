@@ -18,8 +18,9 @@ lookback = 24
 
 logger = logging.Logger("DL")
 testSrv = pika.URLParameters("amqp://enviro:enviro@10.0.0.41")
+connParam = pika.ConnectionParameters(testSrv.host,testSrv.port,credentials=testSrv.credentials,heartbeat=0)
 
-connection = pika.BlockingConnection(testSrv)
+connection = pika.BlockingConnection(connParam)
 channel = connection.channel()
 chnd = connLog.ConnHandler(channel)
 formatter = coloredlogs.ColoredFormatter('DL - %(asctime)s - %(levelname)s - %(message)s')
@@ -29,6 +30,14 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
+
+amqp_url = "amqps://anonymous:anonymous@dd.weather.gc.ca/"
+exchange = "q_anonymous.sr_subscribe.cap-xml_conf.flare_envirotron"
+routing_key = "v02.post.*.WXO-DD.alerts.cap.#"
+# Establish connection
+params = pika.URLParameters(amqp_url)
+connection_env = pika.BlockingConnection(params)
+channel_env = connection_env.channel()
 
 newCapDownloaded = 0
 
@@ -100,11 +109,33 @@ def fetch():
                 }),pika.BasicProperties(content_type='text/json',
                                            delivery_mode=pika.DeliveryMode.Transient))
     logger.info(f"Downloaded {newCapDownloaded} alerts")
+def callback(ch, method, properties, body):
+    conn = sqlite3.connect("alert.db")
+    cur = conn.cursor()
+    
+    b:str = body.decode()
+    A,dd,path =b.split(" ")
+    
+    logger.info(f"Received alert {A}, Downloading")
+    R,n = cache(cur,dd+path)
+    channel.basic_publish("","alert_cap",json.dumps({
+        "typ":"dat",
+        "data":R
+    }),pika.BasicProperties(content_type='text/json',
+                               delivery_mode=pika.DeliveryMode.Transient))
+    conn.commit()
+    conn.close()
 def downloader():
     try:
+        logger.info("downloading data, please wait...")
+        fetch()
+        result = channel_env.queue_declare(exchange)#'q_anonymous_flare')
+        queue_name = result.method.queue
+        print(queue_name)
+        channel_env.queue_bind(queue_name,"xpublic",routing_key )
+        channel_env.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+        channel_env.start_consuming()
         while True:
-            logger.info("downloading")
-            fetch()
             for i in range(10):
                 time.sleep(30)
                 
@@ -115,3 +146,4 @@ def downloader():
             logger.critical(f"{type(e)} {e}")
         logger.warning("DL offline")
         connection.close()
+        
