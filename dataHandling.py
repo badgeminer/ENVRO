@@ -169,8 +169,10 @@ def DataHandler():
                     for r in alert.get("references"):
                         try:
                             logger.debug(f"removing {r}")
+                            cur.execute("DELETE FROM formattedAlert WHERE id = ?;",(r,))
                             del alerts_in_effect[r]
                         except: pass
+                    cur.execute("DELETE FROM formattedAlert WHERE id = ?;",(alert_id,))
                     del alerts_in_effect[alert_id]
                 else:
                     # Otherwise, replace the old alert with the new one
@@ -184,7 +186,8 @@ def DataHandler():
                                 (alert_id,alert["effective"],alert["expires"],alert["urgency"],json.dumps(alert["references"]),alert["msgType"],alert["type"],alert["description"],json.dumps(alert["areas"])))
                 for r in alert.get("references"):
                     if r in alerts_in_effect:
-                        logger.info(f"should be removing {r}")
+                        logger.info(f"removing {r}")
+                        cur.execute("DELETE FROM formattedAlert WHERE id = ?;",(r,))
                         del alerts_in_effect[r]
         else:
             logger.debug("bad alert")
