@@ -123,6 +123,11 @@ def callback(ch, method, properties, body):
         "data":R
     }),pika.BasicProperties(content_type='text/json',
                                delivery_mode=pika.DeliveryMode.Transient))
+    channel.basic_publish("","alert_cap",json.dumps({
+                    "typ":"merge",
+                    "data":"..."
+                }),pika.BasicProperties(content_type='text/json',
+                                           delivery_mode=pika.DeliveryMode.Transient))
     conn.commit()
     conn.close()
 def downloader():

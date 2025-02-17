@@ -257,7 +257,6 @@ def DataHandler():
         match d["typ"]:
             case "dat":
                 parseAlert(d["data"])
-                merge()
             case "merge":
                 merge()
                 
