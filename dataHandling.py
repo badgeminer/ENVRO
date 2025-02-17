@@ -177,11 +177,9 @@ def DataHandler():
                 cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,[references],msgType,type) VALUES (?,?,?,?,?,?,?)",
                                 (alert_id,alert["effective"],alert["expires"],alert["urgency"],json.dumps(alert["references"]),alert["msgType"],alert["type"]))
                 for r in alert.get("references"):
-                    try:
-                        logger.info(f"should be removing {r} {r in alerts_in_effect}")
+                    if r in alerts_in_effect:
+                        logger.info(f"should be removing {r}")
                         #del alerts_in_effect[r]
-                    except: pass
-                    #del alerts_in_effect[alert_id]
         else:
             logger.debug("bad alert")
         conn.commit()
