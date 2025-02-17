@@ -1,5 +1,19 @@
-import env_canada,asyncio,requests,datetime,pika,sqlite3,logging,connLog,json,time,coloredlogs
+import asyncio
+import datetime
+import json
+import logging
+import sqlite3
+import threading
+import time
+
+import coloredlogs
+import env_canada
+import pika
+import requests
 from bs4 import BeautifulSoup
+
+import connLog
+
 lookback = 24
 
 logger = logging.Logger("DL")
@@ -46,11 +60,11 @@ def cache(sql:sqlite3.Cursor,url):
         R = requests.get(url)
         newCapDownloaded+=1
         sql.execute("INSERT or replace INTO Alerts (id,data) VALUES (?,?)",(url,R.text))
-        return R.text
+        return R.text,True
     else:
         sql.execute("SELECT data FROM Alerts WHERE id=?",(url,))
         fth =  sql.fetchone()
-        return fth[0]
+        return fth[0],False
 
 def fetch():
     global lookback,newCapDownloaded
@@ -70,7 +84,7 @@ def fetch():
             #for p in prov:
             #    print(f"{d.year}{d.month}{d.day}/CWNT/{d.hour}/T_{p}CN")
             for r,name in result:
-                R = cache(cur,r)
+                R,n = cache(cur,r)
                 dat.append(R)
                 channel.basic_publish("","alert_cap",json.dumps({
                     "typ":"dat",

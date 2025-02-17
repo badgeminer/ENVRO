@@ -9,11 +9,12 @@ routing_key = "v02.post.*.WXO-DD.alerts.cap.#"  # Adjust this to subscribe to sp
 params = pika.URLParameters(amqp_url)
 
 testSrv = pika.URLParameters("amqp://flare:flare@10.0.0.41")
+connParam = pika.ConnectionParameters(testSrv.host,testSrv.port,credentials=testSrv.credentials,heartbeat=0)
 
 connection = pika.BlockingConnection(params)
 channel = connection.channel()
 
-connection2 = pika.BlockingConnection(testSrv)
+connection2 = pika.BlockingConnection(connParam)
 channel2 = connection2.channel()
 
 
