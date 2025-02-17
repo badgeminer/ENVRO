@@ -311,6 +311,7 @@ const warnColors = {
   
   "winter storm":"#67c9bc",
   "blizzard":"#3f92d1",
+  "snow squall":"#00e5ff",
   
   "arctic outflow":"#03c2fc",
   "extreme cold":"#0004ff",
