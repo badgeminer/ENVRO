@@ -180,8 +180,8 @@ def DataHandler():
             else:
                 # Add the new alert if it's not already tracked
                 alerts_in_effect[alert_id] = alert
-                cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,[references],msgType,type) VALUES (?,?,?,?,?,?,?)",
-                                (alert_id,alert["effective"],alert["expires"],alert["urgency"],json.dumps(alert["references"]),alert["msgType"],alert["type"]))
+                cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,[references],msgType,type,desc) VALUES (?,?,?,?,?,?,?,?)",
+                                (alert_id,alert["effective"],alert["expires"],alert["urgency"],json.dumps(alert["references"]),alert["msgType"],alert["type"],alert["description"]))
                 for r in alert.get("references"):
                     if r in alerts_in_effect:
                         logger.info(f"should be removing {r}")
