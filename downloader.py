@@ -130,7 +130,7 @@ def callback(ch, method, properties, body):
                                            delivery_mode=pika.DeliveryMode.Transient))
     conn.commit()
     conn.close()
-def downloader():
+def run():
     try:
         logger.info("downloading data, please wait...")
         fetch()
@@ -149,6 +149,24 @@ def downloader():
     except BaseException as e:
         if not isinstance(e,KeyboardInterrupt):
             logger.critical(f"{type(e)} {e}")
+        logger.warning("DL auto offline")
+def downloader():
+    try:
+        logger.info("downloading data, please wait...")
+        fetch()
+        result = channel_env.queue_declare(exchange)#'q_anonymous_flare')
+        queue_name = result.method.queue
+        print(queue_name)
+        channel_env.queue_bind(queue_name,"xpublic",routing_key )
+        channel_env.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+        threading.Thread(target=run,daemon=True).start()
+        while True:
+            for i in range(10):
+                time.sleep(30)
+    except BaseException as e:
+        if not isinstance(e,KeyboardInterrupt):
+            logger.critical(f"{type(e)} {e}")
         logger.warning("DL offline")
         connection.close()
+        connection_env.close()
         
