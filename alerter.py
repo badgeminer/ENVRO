@@ -1,4 +1,4 @@
-import logging,pika,json,datetime
+import logging,pika,json,datetime,pytz
 from dateutil import parser
 testSrv = pika.URLParameters("amqp://alert:alert@10.0.0.41")
 
@@ -39,13 +39,17 @@ channel.queue_bind(exchange='alert',
 
 print(' [*] Waiting for logs. To exit press CTRL+C')
 
+def convert(dte, fromZone, toZone):
+    fromZone, toZone = pytz.timezone(fromZone), pytz.timezone(toZone)
+    return fromZone.localize(dte, is_dst=True).astimezone(toZone)
+
 def callback(ch, method, properties, body):
     b = body.decode()
     #print(f" [x] {body}")
     dat = json.loads(b)
     if dat["type"] == "Alert":
         if dat["alert"]["type"] in urgent_alerts:
-            time = parser.isoparse(dat["alert"]["effective"]).replace(tzinfo=datetime.timezone.utc)
+            time = parser.isoparse(dat["alert"]["effective"]).replace(tzinfo=datetime.timezone.utc).astimezone(pytz.timezone("US/Mountain"))
             alertText = template.format(
                 Time=time.strftime("%H:%M"),
                 Issu=issu.get(dat["alert"]["sender"],"Enviroment Canada, or other external body"),
