@@ -163,6 +163,11 @@ def downloader():
         while True:
             for i in range(10):
                 time.sleep(30)
+            channel.basic_publish("","alert_cap",json.dumps({
+                    "typ":"merge",
+                    "data":"..."
+                }),pika.BasicProperties(content_type='text/json',
+                                           delivery_mode=pika.DeliveryMode.Transient))
     except BaseException as e:
         if not isinstance(e,KeyboardInterrupt):
             logger.critical(f"{type(e)} {e}")
