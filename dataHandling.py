@@ -40,18 +40,21 @@ def DataHandler():
     
     def anounceAlert(alert: dict,id: str):
         channel.basic_publish(exchange='alert', routing_key='', body=json.dumps({
+            "status":"Actual",
             "type":"Alert",
             "id":id,
             "alert":alert
         }))
     def replaceAlert(old_id,id):
         channel.basic_publish(exchange='alert', routing_key='', body=json.dumps({
+            "status":"Actual",
             "type":"Update",
             "old_id":old_id,
             "id":id
         }))
     def endAlert(id):
         channel.basic_publish(exchange='alert', routing_key='', body=json.dumps({
+            "status":"Actual",
             "type":"Cancel",
             "id":id
         }))
