@@ -37,6 +37,24 @@ def DataHandler():
                 "data": And(str, len),
         }
     )
+    
+    def anounceAlert(alert: dict,id: str):
+        channel.basic_publish(exchange='alert', routing_key='', body=json.dumps({
+            "type":"Alert",
+            "id":id,
+            "alert":alert
+        }))
+    def replaceAlert(old_id,id):
+        channel.basic_publish(exchange='alert', routing_key='', body=json.dumps({
+            "type":"Update",
+            "old_id":old_id,
+            "id":id
+        }))
+    def endAlert(id):
+        channel.basic_publish(exchange='alert', routing_key='', body=json.dumps({
+            "type":"Cancel",
+            "id":id
+        }))
 
     def extract_urns(data: str):
         """
@@ -162,27 +180,29 @@ def DataHandler():
         alert = parse_cap(dat)
         if alert:
             alert_id = alert["identifier"]
-            
             # Handle updates
             if alert_id in alerts_in_effect:
                 # If the new alert has "AllClear", remove the previous alert
                 
                 if alert.get("responseType") == "AllClear":
                     for r in alert.get("references"):
-                        try:
+                        if r in alerts_in_effect:
                             logger.debug(f"removing {r}")
                             cur.execute("DELETE FROM formattedAlert WHERE id = ?;",(r,))
                             del alerts_in_effect[r]
-                        except: pass
+                            endAlert(r)
                     cur.execute("DELETE FROM formattedAlert WHERE id = ?;",(alert_id,))
                     del alerts_in_effect[alert_id]
+                    endAlert(alert_id)
                 else:
                     # Otherwise, replace the old alert with the new one
                     cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,msgType,type) VALUES (?,?,?,?,?,?)",
                                 (alert_id,alert["effective"],alert["expires"],alert["urgency"],alert["msgType"],alert["type"]))
                     alerts_in_effect[alert_id] = alert
+                    anounceAlert(alert,alert_id)
             else:
                 # Add the new alert if it's not already tracked
+                anounceAlert(alert,alert_id)
                 alerts_in_effect[alert_id] = alert
                 cur.execute("INSERT or replace INTO formattedAlert (id,begins,ends,urgency,[references],msgType,type,desc,areas) VALUES (?,?,?,?,?,?,?,?,?)",
                                 (alert_id,alert["effective"],alert["expires"],alert["urgency"],json.dumps(alert["references"]),alert["msgType"],alert["type"],alert["description"],json.dumps(alert["areas"])))
@@ -191,6 +211,7 @@ def DataHandler():
                         logger.info(f"removing {r}")
                         cur.execute("DELETE FROM formattedAlert WHERE id = ?;",(r,))
                         del alerts_in_effect[r]
+                        replaceAlert(r,alert_id)
         else:
             logger.debug("bad alert")
         conn.commit()
@@ -210,6 +231,7 @@ def DataHandler():
             if current_time >= expires_time:
                 logger.info(f"Alert {k} expired at {expires_time}, current time: {current_time}")
                 deleteAlerts.append(k)
+                endAlert(k)
         for d in deleteAlerts:
             del alerts_in_effect[d]
             
