@@ -9,6 +9,12 @@ urgent_alerts = {
     "extreme cold",
     "heat"
 }
+
+PDS = {
+    "tornado",
+    "blizzard"
+}
+
 issu = {
     "cap-pac@canada.ca":"Enviroment Canada"
 }
@@ -25,7 +31,8 @@ If caught on the water in a small boat with no cabin during thunder and lightnin
 Remember that there is no safe place outdoors during a thunderstorm. Once in a safe location, remain there for 30 minutes after the last rumble of thunder you hear before resuming your outdoor activities."""
 }
 
-template = """ENVIROTRON ALERT
+template = """{PDS}|
+ENVIROTRON ALERT
 At {Time}, {Issu} issued a {alert} warning
 {directions}
 {description}"""
@@ -51,6 +58,7 @@ def callback(ch, method, properties, body):
         if dat["alert"]["type"] in urgent_alerts:
             time = parser.isoparse(dat["alert"]["effective"]).replace(tzinfo=datetime.timezone.utc).astimezone(pytz.timezone("US/Mountain"))
             alertText = template.format(
+                PDS=str(dat["alert"]["type"] in PDS),
                 Time=time.strftime("%H:%M"),
                 Issu=issu.get(dat["alert"]["sender"],"Enviroment Canada, or other external body"),
                 alert=dat["alert"]["type"],
