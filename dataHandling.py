@@ -255,7 +255,13 @@ def DataHandler():
             })
             
             logger.info("Merging complete")
-        except BaseException as e:
+        except KeyError as e:
+            logger.error(f"failed to merge {type(e)} {e}")
+            merged = {
+                "type": "FeatureCollection",
+                "features": areas
+            }
+        except Exception as e:
             logger.error(f"failed to merge {type(e)} {e}")
             merged = {
                 "type": "FeatureCollection",
