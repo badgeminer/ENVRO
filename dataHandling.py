@@ -298,7 +298,7 @@ def DataHandler():
     try:
         logger.info("Data Handling ready")
         channel.start_consuming()
-    except BaseException as e:
+    except Exception as e:
         logger.warning(f"Data Handling stopping {type(e)} {e}")
         print("Stopping...")
         connection.close()
