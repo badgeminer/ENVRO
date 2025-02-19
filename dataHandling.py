@@ -140,10 +140,14 @@ def DataHandler():
                         })
                         
             #FIXME temp
-            areas = mg.merge_polygons_by_warn({
-                        "type": "FeatureCollection",
-                        "features": areas
-            })["features"]
+            try:
+                areas = mg.merge_polygons_by_warn({
+                            "type": "FeatureCollection",
+                            "features": areas
+                })["features"]
+            except KeyError as e:
+                logger.warning(f"Alert {identifier} has no area")
+                areas = []
             # Check if the alert is in effect
             if current_time >= expires_time:
                 logger.info(f"Alert {identifier} expired at {expires_time}, current time: {current_time}")
@@ -267,6 +271,8 @@ def DataHandler():
                 "type": "FeatureCollection",
                 "features": areas
             }
+        except:
+            logger.critical("THIS SHOULD NEVER HAPPEN")
         merged = {
                 "type": "FeatureCollection",
                 "features": areas
