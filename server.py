@@ -1,6 +1,7 @@
 import asyncio,ansi2html
 import sched,struct
-import threading
+import ansi2html.style
+import threading,pika
 import time,merge,logging,collections
 
 from cachetools import TTLCache, cached
@@ -11,7 +12,25 @@ from flask_cors import CORS, cross_origin
 import dataPack,pcap
 logging.basicConfig(level=logging.DEBUG)
 
-
+ansi2html.style.SCHEME["ansi2html"] = (
+        "#555555",
+        "#aa0000",
+        "#00aa00",
+        "#aa5500",
+        "#0000aa",
+        "#E850A8",
+        "#00aaaa",
+        "#F5F1DE",
+        "#7f7f7f",
+        "#ff0000",
+        "#00ff00",
+        "#ffff00",
+        "#5c5cff",
+        "#ff00ff",
+        "#00ffff",
+        "#ffffff",
+    )
+logSync = threading.Lock()
 class ListHandler(logging.Handler):
     def __init__(self, log_list):
         super().__init__()
@@ -19,8 +38,13 @@ class ListHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = self.format(record)
+        logSync.acquire()
         self.log_list.append(log_entry)
-log_messages = collections.deque(maxlen= 500)
+        logSync.release()
+
+
+log_messages = collections.deque(maxlen= 1000)
+net_log_messages = collections.deque(maxlen= 1000)
 list_handler = ListHandler(log_messages)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 list_handler.setFormatter(formatter)
@@ -72,18 +96,18 @@ mapings = {
     "SEVERE THUNDERSTORM WARNING": "warns.TSTORM",
     "SEVERE THUNDERSTORM WATCH":   "watch.TSTORM",
     "Snowfall Warning": "warns.SNOW",
-    "extreme cold" : "warns.COLD"
+    "Extreme Cold Warning" : "warns.COLD"
 }
 iconBindings = {
-    "1":"clear",
-    "2":"partcloud",
-    "3":"partcloud",
-    "4":"cloudy",
-    "5":"partcloud",
-    "6":"clear",
-    "7":"raining",
-    "8":"snowrain",
-    "9":"snowing",
+    "01":"clear",
+    "02":"partcloud",
+    "03":"partcloud",
+    "04":"cloudy",
+    "05":"partcloud",
+    "06":"clear",
+    "07":"raining",
+    "08":"snowrain",
+    "09":"snowing",
     "10":"thunderstorm",
     "11":"cloudy",
     "12":"raining",
@@ -93,17 +117,53 @@ iconBindings = {
     "16":"snowing",
     "17":"snowing",
     "18":"snowing",
+    "26":"partcloud",
+    "27":"partcloud",
+    "28":"cloudy",
+    "31":"raining",
+    "32":"snowrain",
+    "33":"snowing",
+    "34":"thunderstorm",
+    "35":"snowwind",
+    "36":"windy"
 }
 alertsMap = {}
+
+RABBITMQ_HOST = pika.URLParameters("amqp://enviro-server:enviro@10.0.0.41")
+
+messages = []  # Store received messages in a list for demonstration
+merged = {}
+
+def callback_log(ch, method, properties, body):
+    """Handle incoming RabbitMQ messages."""
+    message = body.decode()
+    logSync.acquire()
+    list_handler.log_list.append(message)  # Store the message
+    net_log_messages.append(message)
+    logSync.release()
+    
+def callback_merged(ch, method, properties, body):
+    global merged
+    """Handle incoming RabbitMQ messages."""
+    message = body.decode()
+    merged = json.loads(message)
+    
+
+def consume_messages():
+    """Start consuming messages from RabbitMQ."""
+    connection = pika.BlockingConnection(RABBITMQ_HOST)
+    channel = connection.channel()
+
+    channel.basic_consume(queue="log", on_message_callback=callback_log, auto_ack=True)
+    channel.basic_consume(queue="merged", on_message_callback=callback_merged, auto_ack=True)
+
+    print("Waiting for messages...")
+    channel.start_consuming()  # Blocking call
 
 async def alertMap():
     global alertsMap
     alertsMap = pcap.fetch()
     
-@cached(cache=TTLCache(maxsize=1024, ttl=60*5))
-def getMap():
-    asyncio.run(alertMap())
-    return alertsMap
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def update():
@@ -166,18 +226,10 @@ def top_alert():
             "class":"warnings"
         })
     
-    
-@app.route("/api/geojson/<name>")
-def geo(name):
-    return json.dumps(getMap()[name])
-
-@app.route("/api/geojson")
-def geokeys():
-    return json.dumps(tuple(getMap()))
 
 @app.route("/api/geojson/merged")
 def geomerged():
-    return jsonify(pcap.merge(getMap()))
+    return jsonify(merged)
 
 @app.route("/api/conditions")
 def conditions():
@@ -188,9 +240,25 @@ def outLog():
     def streamLog():
         conv = ansi2html.Ansi2HTMLConverter()
         m = ""
+        logSync.acquire()
         for i in log_messages:
-            m += f"{conv.convert(i)}<br>"
-        return f"{m}<br>END OF LOG"
+            m += f"{conv.convert(i)}"
+        logSync.release()
+        return m
+        
+    return streamLog()
+
+@app.route("/log/net")
+def outNetLog():
+    def streamLog():
+        conv = ansi2html.Ansi2HTMLConverter()
+        m = ""
+        logSync.acquire()
+        for i in net_log_messages:
+            m += f"{conv.convert(i)}"
+        logSync.release()
+        return m
+        
     return streamLog()
 
 def utf8_integer_to_unicode(n):
@@ -226,4 +294,5 @@ def assets(key):
 
 
 if __name__ == '__main__':
+  threading.Thread(target=consume_messages, daemon=True).start()
   app.run(host="0.0.0.0")

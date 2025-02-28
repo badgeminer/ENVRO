@@ -13,7 +13,7 @@ import VectorImageLayer from 'ol/layer/VectorImage.js';
 //import VectorLayer from 'ol/layer/Vector.js';
 import VectorSource from 'ol/source/Vector.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
-import Fill from 'ol/style/Fill.js';
+import Fill from 'ol/style/Fill.js'; //TODO REMOVE ME
 
 const pixelRatio = DEVICE_PIXEL_RATIO;
 
@@ -105,6 +105,8 @@ var watch = {
     "TSTORM":"󰼯 ",
     "TORNADO":"󰼯 󰼸",
 }
+
+//TODO REMOVE ME
 var prioritys = [
     "warns.TORNADO",
     "watch.TORNADO",
@@ -124,6 +126,7 @@ var alerts= {
         "symbols": ' ',
         "text":"TEST",
         "class":"test",
+        "color":"#FFFFFF"
     }
 }
 for (const key in warns) {
@@ -133,7 +136,8 @@ for (const key in warns) {
         "class":"warnings",
         "bg":"red",
         "symbols": element,
-        "text":key
+        "text":key,
+        "color":"#FFFFFF"
     }
 }
 for (const key in watch) {
@@ -143,7 +147,8 @@ for (const key in watch) {
         "class":"watches",
         "bg":"yellow",
         "symbols": element,
-        "text":key
+        "text":key,
+        "color":"#333"
     }
 }
 
@@ -158,6 +163,7 @@ const weatherTypes = {
   clear:"󰖙",
   tornado:"󰼸",
   windy:"󰖝",
+  snowwind:"󰜗󰖝",
   thunderstorm:"󰙾",
   partlyCloudy:"󰖕",
   snowrain:"󰙿",
@@ -189,6 +195,7 @@ function setAlert(alert) {
         top_alert.setAttribute("type","NONE")
         top_alert.style.setProperty("--prev",prev.bg)
         top_alert.style.setProperty("--cur",alertData.bg)
+        top_alert.style.setProperty("--col","#FFFFFF")
         alertIcon.innerText = ""
         alertType.innerText = ""
     } else {
@@ -196,9 +203,10 @@ function setAlert(alert) {
         //top_alert.style.background = "linear-gradient(to left, yellow 50%, red 50%) right"
         
         
-        top_alert.setAttribute("type",alertData.class)
+        top_alert.setAttribute("type","")
         top_alert.style.setProperty("--prev",prev.bg)
         top_alert.style.setProperty("--cur",alertData.bg)
+        top_alert.style.setProperty("--col",alertData.color)
 
         //top_alert.class = `${alertData.class} twoLineData`
         //top_alert.classList[0] = alertData.class
@@ -288,7 +296,7 @@ const vectorLayer = new VectorImageLayer({
   }
 });
 
-
+//TODO REMOVE ME
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
 const wspout_stripes = context.createLinearGradient(0, 0, 1024 * pixelRatio, 0);
@@ -299,12 +307,15 @@ wspout_stripes.addColorStop(3 / 6, '#00000000');
 wspout_stripes.addColorStop(4 / 6, 'orange');
 wspout_stripes.addColorStop(5 / 6, '#00000000');
 wspout_stripes.addColorStop(1, 'orange');
+
+
 const warnColors = {
   "snowfall":"#00ffff",
-  "blowing snow":"#008fbb",
+  "blowing snow advisory":"#008fbb",
   
-  "winter storm":"#67c9bc",
+  "winter storm warning":"#67c9bc",
   "blizzard":"#3f92d1",
+  "snow squall":"#00e5ff",
   
   "arctic outflow":"#03c2fc",
   "extreme cold":"#0004ff",

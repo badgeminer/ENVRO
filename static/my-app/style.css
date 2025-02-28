@@ -204,7 +204,7 @@ html {
   float:left;
   color: #f2f2f2;
   text-align: center;
-  padding: 7px 16px;
+  padding: 14px 16px;
   text-decoration: none;
   font-size: 17px;
   margin:0;
@@ -230,18 +230,8 @@ html {
 
 
 
-.warnPane[type="warnings"] {
-  background: linear-gradient(to left,red 50%, var(--prev) 50%) right;
-  background-size: 200%;
-  background-position: var(--side);
-}
-.warnPane[type="watches"] {
-  /*background-color: yellow;*/
-  background: linear-gradient(to left,yellow 50%, var(--prev) 50%) right;
-  background-size: 200%;
-  color: #333;
-  background-position: var(--side);
-}
+
+
 .warnPane[type="NONE"] {
   /*background-color: yellow;*/
   background: linear-gradient(to left,#333 50%, var(--prev) 50%) right;
@@ -259,11 +249,14 @@ html {
 
 
 .warnPane {
-  width: 58px;
-  height: 58px;
+  width: 130px;
+  height: 30px;
   background-size: 200%;
   transition: .5s ease-out;
-
+  background: linear-gradient(to left,var(--cur) 50%, var(--prev) 50%) right;
+  background-size: 200%;
+  background-position: var(--side);
+  color: var(--col);
 }
 
 .padtop {
