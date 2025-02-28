@@ -94,25 +94,6 @@ def runAMQP():
 threading.Thread(target=runAMQP,daemon=True).start()
 
 
-say("""ENVIROTRON ALERT
-At 14:29, Enviroment Canada issued a extreme cold warning
-
-
-A prolonged extreme cold event continues over southern Manitoba, with the region experiencing extreme wind chill values of minus 40 or lower at times.
-
-While wind chill values may moderate slightly during the day, they are anticipated to return to extreme levels at night and in the mornings.
-
-Extreme cold warnings are expected to remain in place for many over the next few days. Temperatures will begin to moderate by Thursday with a significant warm-up expected next weekend.
-
-###
-
-Extreme cold puts everyone at risk.
-
-Risks are greater for young children, older adults, people with chronic illnesses, people working or exercising outdoors, and those without proper shelter.
-
-Extreme cold warnings are issued when very cold temperatures or wind chill creates an elevated risk to health such as frost bite and hypothermia.
-
-Please continue to monitor alerts and forecasts issued by Environment Canada. To report severe weather, send an email to MBstorm@ec.gc.ca, call 1-800-239-0484 or post reports on X using #MBStorm.""")
 while not done:
     tp.reset()
     if len(text) == 0:
