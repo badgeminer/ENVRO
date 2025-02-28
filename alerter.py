@@ -31,8 +31,7 @@ If caught on the water in a small boat with no cabin during thunder and lightnin
 Remember that there is no safe place outdoors during a thunderstorm. Once in a safe location, remain there for 30 minutes after the last rumble of thunder you hear before resuming your outdoor activities."""
 }
 
-template = """{PDS}|
-ENVIROTRON ALERT
+template = """ENVIROTRON ALERT
 At {Time}, {Issu} issued a {alert} warning
 {directions}
 {description}"""
