@@ -62,6 +62,7 @@ def get_url_paths(url, ext='', params={}):
 
 def cache(sql:sqlite3.Cursor,url):
     global newCapDownloaded
+    
     sql.execute("SELECT EXISTS(SELECT 1 FROM Alerts WHERE id=?)",(url,))
     fth =  sql.fetchone()
     if not fth[0]:
@@ -87,19 +88,22 @@ def fetch():
         
         for iss in issu:
             conn = sqlite3.connect("alert.db")
-            cur = conn.cursor()
-            url = f'https://dd.weather.gc.ca/{d.year}{d.month:>02}{d.day:>02}/WXO-DD/alerts/cap/{d.year}{d.month:>02}{d.day:>02}/{iss}/{d.hour:>02}/'
-            result: list[str] = get_url_paths(url, "cap")
-            #for p in prov:
-            #    print(f"{d.year}{d.month}{d.day}/CWNT/{d.hour}/T_{p}CN")
-            for r,name in result:
-                R,n = cache(cur,r)
-                dat.append(R)
-                channel.basic_publish("","alert_cap",json.dumps({
-                    "typ":"dat",
-                    "data":R
-                }),pika.BasicProperties(content_type='text/json',
-                                           delivery_mode=pika.DeliveryMode.Transient))
+            try:
+                cur = conn.cursor()
+                url = f'https://dd.weather.gc.ca/{d.year}{d.month:>02}{d.day:>02}/WXO-DD/alerts/cap/{d.year}{d.month:>02}{d.day:>02}/{iss}/{d.hour:>02}/'
+                result: list[str] = get_url_paths(url, "cap")
+                #for p in prov:
+                #    print(f"{d.year}{d.month}{d.day}/CWNT/{d.hour}/T_{p}CN")
+                for r,name in result:
+                    R,n = cache(cur,r)
+                    dat.append(R)
+                    channel.basic_publish("","alert_cap",json.dumps({
+                        "typ":"dat",
+                        "data":R
+                    }),pika.BasicProperties(content_type='text/json',
+                                            delivery_mode=pika.DeliveryMode.Transient))
+            except BaseException as e:
+                logger.warning(f"Failed to download {e}")
             conn.commit()
             conn.close()
     lookback = 1
@@ -117,17 +121,20 @@ def callback(ch, method, properties, body):
     A,dd,path =b.split(" ")
     
     logger.info(f"Received alert {A}, Downloading")
-    R,n = cache(cur,dd+path)
-    channel.basic_publish("","alert_cap",json.dumps({
-        "typ":"dat",
-        "data":R
-    }),pika.BasicProperties(content_type='text/json',
-                               delivery_mode=pika.DeliveryMode.Transient))
-    channel.basic_publish("","alert_cap",json.dumps({
-                    "typ":"merge",
-                    "data":"..."
-                }),pika.BasicProperties(content_type='text/json',
-                                           delivery_mode=pika.DeliveryMode.Transient))
+    try:
+        R,n = cache(cur,dd+path)
+        channel.basic_publish("","alert_cap",json.dumps({
+            "typ":"dat",
+            "data":R
+        }),pika.BasicProperties(content_type='text/json',
+                                delivery_mode=pika.DeliveryMode.Transient))
+        channel.basic_publish("","alert_cap",json.dumps({
+                        "typ":"merge",
+                        "data":"..."
+                    }),pika.BasicProperties(content_type='text/json',
+                                            delivery_mode=pika.DeliveryMode.Transient))
+    except BaseException as e:
+        logger.warning(f"Failed to download {e}")
     conn.commit()
     conn.close()
 def run():
