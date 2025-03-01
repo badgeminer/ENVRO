@@ -99,6 +99,7 @@ def DataHandler():
             expires = root.find('cap:info/cap:expires', ns).text  # Example: "2024-12-21T12:00:00-00:00"
             response_type = root.find('cap:info/cap:responseType', ns)
             response_type = response_type.text if response_type is not None else None
+            urgency = root.find('cap:info/cap:urgency', ns).text
 
             # Effective time is optional
             effective_element = root.find('cap:info/cap:effective', ns)
@@ -170,7 +171,7 @@ def DataHandler():
                     "areas":areas,
                     "msgType":msgType,
                     "type":event,
-                    "urgency": root.find('cap:info/cap:urgency', ns).text,
+                    "urgency": urgency,
                 }
             else:
                 logger.warning(f"{status} {identifier}")
@@ -191,7 +192,7 @@ def DataHandler():
             if alert_id in alerts_in_effect:
                 # If the new alert has "AllClear", remove the previous alert
                 
-                if alert.get("responseType") == "AllClear":
+                if alert.get("responseType") == "AllClear" or alert.get("urgency") == "Past":
                     for r in alert.get("references"):
                         if r in alerts_in_effect:
                             logger.debug(f"removing {r}")
