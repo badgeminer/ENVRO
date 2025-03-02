@@ -1,12 +1,20 @@
-import pygame,threading,pika,re,time
+import configparser
+import re
 import textwrap
+import threading
+import time
+
+import pika
+import pygame
+import pyttsx3
 import win32api
 import win32con
 import win32gui
 
-import pyttsx3
+config = configparser.ConfigParser()
+config.read("config.ini")
 
-testSrv = pika.URLParameters("amqp://alert:alert@10.0.0.41")
+testSrv = pika.URLParameters(config["warn"]["amqp"])
 
 engine = pyttsx3.init()
 def onEnd():

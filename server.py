@@ -1,16 +1,26 @@
-import asyncio,ansi2html
-import sched,struct
-import ansi2html.style
-import threading,pika
-import time,merge,logging,collections
+import asyncio
+import collections
+import logging
+import struct
+import threading
+import configparser
 
+import ansi2html
+import ansi2html.style
+import pika
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
-from flask import Flask, json, jsonify, render_template, request,Response,send_from_directory,redirect,send_file,url_for
+from flask import (Flask, Response, json, jsonify, redirect, render_template,
+                   request, send_file, send_from_directory, url_for)
 from flask_cors import CORS, cross_origin
 
 import pcap
+
 logging.basicConfig(level=logging.DEBUG)
+
+config = configparser.ConfigParser()
+config.read("config.ini")
+
 
 ansi2html.style.SCHEME["ansi2html"] = (
         "#555555",
@@ -129,7 +139,7 @@ iconBindings = {
 }
 alertsMap = {}
 
-RABBITMQ_HOST = pika.URLParameters("amqp://enviro-server:enviro@10.0.0.41")
+RABBITMQ_HOST = pika.URLParameters(config["server"]["amqp"])
 
 messages = []  # Store received messages in a list for demonstration
 merged = {}
@@ -192,25 +202,6 @@ def update():
     weather["cond"]["icon_code"] = iconBindings.get(weather["cond"]["ECicon_code"],"err")
     return weather
 
-route = [[51.1435, -114.257], [51.1441, -114.2583], [51.1451, -114.2606],[51.1463, -114.2639]]
-chsr = [51,-114]
-@app.route("/api/chsr",methods=['POST'])
-def my_route():
-    route.append(request.json)
-    chsr = request.json
-    return json.dumps(
-        {
-            "route":route,
-            "chsr":chsr
-        })
-    
-@app.route("/api/route")
-def routes():
-    return json.dumps(
-        {
-            "route":route,
-            "chsr":chsr
-        })
 @app.route("/api/alerts")
 def alerts():
     global weather
