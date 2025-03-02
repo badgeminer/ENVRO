@@ -1,4 +1,5 @@
 import asyncio
+import configparser
 import datetime
 import json
 import logging
@@ -14,10 +15,13 @@ from bs4 import BeautifulSoup
 
 import connLog
 
+config = configparser.ConfigParser()
+config.read("config.ini")
+
 lookback = 24
 
 logger = logging.Logger("DL")
-testSrv = pika.URLParameters("amqp://enviro:enviro@10.0.0.41")
+testSrv = pika.URLParameters(config["downloader"]["amqp"])
 connParam = pika.ConnectionParameters(testSrv.host,testSrv.port,credentials=testSrv.credentials,heartbeat=0)
 
 connection = pika.BlockingConnection(connParam)

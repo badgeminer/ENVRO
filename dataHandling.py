@@ -1,12 +1,13 @@
 import collections
+import configparser
 import datetime
 import json
 import logging
 import re
-import sqlite3,connLog,coloredlogs
-import merge as mg
+import sqlite3
 import xml.etree.ElementTree as ET
 
+import coloredlogs
 import pika
 import pika.spec
 from dateutil import parser
@@ -14,11 +15,17 @@ from schema import And, Optional, Schema, SchemaError, Use
 from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import orient
 
+import connLog
+import merge as mg
+
+config = configparser.ConfigParser()
+config.read("config.ini")
+
 alerts_in_effect = {}
 def DataHandler():
     logger = logging.Logger("DH")
 
-    testSrv = pika.URLParameters("amqp://enviro:enviro@10.0.0.41")
+    testSrv = pika.URLParameters(config["DataHandler"]["amqp"])
 
     connection = pika.BlockingConnection(testSrv)
     channel = connection.channel()
