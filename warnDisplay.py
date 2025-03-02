@@ -1,3 +1,8 @@
+"""
+DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
+THIS USES EAS TONES
+"""
+
 import configparser
 import re
 import textwrap
