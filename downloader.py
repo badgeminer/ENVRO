@@ -1,4 +1,5 @@
 import asyncio
+import configparser
 import datetime
 import json
 import logging
@@ -13,6 +14,9 @@ import requests
 from bs4 import BeautifulSoup
 
 import connLog
+
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 lookback = 24
 
