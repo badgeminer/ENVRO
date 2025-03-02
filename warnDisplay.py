@@ -1,3 +1,8 @@
+"""
+DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
+THIS USES EAS TONES
+"""
+
 import configparser
 import re
 import textwrap
@@ -120,7 +125,7 @@ while not done:
 
     scr.fill((0,0,0))  # Transparent background
     pygame.draw.rect(scr, red, redSquare)
-    tp.tprint(scr,"This Is Only A Test")
+    tp.tprint(scr,"ENVIROTRON")
     for t in text:
         tp.tprint(scr,t)
     
