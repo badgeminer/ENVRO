@@ -64,7 +64,7 @@ pcap.setup()
 
 app = Flask(__name__)
 CORS(app,resources=r'/api/*')
-ec_en = ECWeather(station_id='AB/s0000047', language='english')
+ec_en = ECWeather(station_id=config["server"]["station_id"], language='english')
 types = [
     "warnings",
     "watches",
