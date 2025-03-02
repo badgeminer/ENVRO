@@ -3,6 +3,7 @@ import sched,struct
 import ansi2html.style
 import threading,pika
 import time,merge,logging,collections
+import configparser
 
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
@@ -11,6 +12,10 @@ from flask_cors import CORS, cross_origin
 
 import pcap
 logging.basicConfig(level=logging.DEBUG)
+
+config = configparser.ConfigParser()
+config.read("config.ini")
+
 
 ansi2html.style.SCHEME["ansi2html"] = (
         "#555555",
@@ -129,7 +134,7 @@ iconBindings = {
 }
 alertsMap = {}
 
-RABBITMQ_HOST = pika.URLParameters("amqp://enviro-server:enviro@10.0.0.41")
+RABBITMQ_HOST = pika.URLParameters(config["server"]["amqp"])
 
 messages = []  # Store received messages in a list for demonstration
 merged = {}
