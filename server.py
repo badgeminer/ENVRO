@@ -1,16 +1,21 @@
-import asyncio,ansi2html
-import sched,struct
-import ansi2html.style
-import threading,pika
-import time,merge,logging,collections
+import asyncio
+import collections
+import logging
+import struct
+import threading
 import configparser
 
+import ansi2html
+import ansi2html.style
+import pika
 from cachetools import TTLCache, cached
 from env_canada import ECWeather
-from flask import Flask, json, jsonify, render_template, request,Response,send_from_directory,redirect,send_file,url_for
+from flask import (Flask, Response, json, jsonify, redirect, render_template,
+                   request, send_file, send_from_directory, url_for)
 from flask_cors import CORS, cross_origin
 
 import pcap
+
 logging.basicConfig(level=logging.DEBUG)
 
 config = configparser.ConfigParser()
