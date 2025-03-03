@@ -15,4 +15,5 @@ THIS ONLY WORKS IN CANADA
     - set station_id in config.ini
         - [Station IDs can be found here](https://dd.weather.gc.ca/citypage_weather/docs/site_list_towns_en.csv)
         - Current station id is Calgary Alberta
-3. Run start.py
+3. Cd into static/my-app and run `npm run build`
+4. Run start.py
