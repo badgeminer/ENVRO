@@ -168,7 +168,8 @@ const weatherTypes = {
   partlyCloudy:"󰖕",
   snowrain:"󰙿",
   partcloud:"󰖕",
-  err:"󰼯"
+  err:"󰼯",
+  moonclear:"󰖔"
 }
 
 var top_alert = document.getElementById("topWarn");

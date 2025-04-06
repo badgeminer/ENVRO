@@ -130,12 +130,14 @@ iconBindings = {
     "26":"partcloud",
     "27":"partcloud",
     "28":"cloudy",
+    "30":"moonclear",
     "31":"raining",
     "32":"snowrain",
     "33":"snowing",
     "34":"thunderstorm",
     "35":"snowwind",
-    "36":"windy"
+    "36":"windy",
+    
 }
 alertsMap = {}
 
