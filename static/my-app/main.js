@@ -237,8 +237,11 @@ function alerts_warn(type,id,title) {
     document.getElementById(`${type}`).appendChild(a)
   }
 
-
-
+var qrhTbl =document.getElementById("qrhTbl")
+for (var element in weatherTypes) {
+  var icon = weatherTypes[element]
+  qrhTbl.innerHTML += `<tr><td>${icon}</td><td>${element.toUpperCase()}</td></tr>`
+}
 
 //endregion
 
